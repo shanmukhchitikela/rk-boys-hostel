@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Hostel settings | Hostel Desk{% endblock %}
+{% block breadcrumb %}Hostel settings{% endblock %}
+
+{% block content %}
+<section class="room-form-page">
+    <div class="page-heading room-form-heading">
+        <div><p class="eyebrow">WORKSPACE</p><h1>Hostel settings</h1><p class="page-subtitle">Contact details and text printed on payment receipts.</p></div>
+    </div>
+    <form method="post" class="room-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="room-form-grid">
+            {% for field in form %}
+            <div class="room-form-field{% if field.name == 'address' or field.name == 'phone_numbers' or field.name == 'receipt_text' %} room-form-field-wide{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="room-form-actions"><button class="primary-action" type="submit">Save settings</button></div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Paid residents | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'billing:charge_list' %}">Billing</a><span class="breadcrumb-divider">/</span>Paid residents{% endblock %}
+
+{% block content %}
+<section class="billing-page">
+    <div class="page-heading billing-page-heading">
+        <div><p class="eyebrow">COLLECTIONS</p><h1>Paid residents</h1><p class="page-subtitle">Charges settled for {{ month|stringformat:"02d" }}/{{ year }}.</p></div>
+        <a class="admin-link" href="{% url 'billing:charge_list' %}"><span aria-hidden="true">&larr;</span> All billing</a>
+    </div>
+    <form method="get" class="billing-filter-form" role="search">
+        <div class="billing-month-controls"><label for="{{ month_form.year.id_for_label }}">Year</label>{{ month_form.year }}<label for="{{ month_form.month.id_for_label }}">Month</label>{{ month_form.month }}</div>
+        <label class="billing-search-field" for="paid-search">Search residents<input id="paid-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Name or phone"></label>
+        <button class="admin-link" type="submit">Filter</button>
+    </form>
+    {% if page_obj.object_list %}
+    <div class="room-table-wrap"><table class="room-table billing-table"><thead><tr><th scope="col">Resident</th><th scope="col">Period</th><th scope="col">Charge</th><th scope="col">Paid</th><th scope="col">Due date</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead><tbody>
+        {% for charge in page_obj %}<tr><th scope="row"><span class="room-number">{{ charge.resident.full_name }}</span></th><td>{{ charge.period }}</td><td>{{ charge.amount|floatformat:2 }}</td><td>{{ charge.paid_amount|floatformat:2 }}</td><td>{{ charge.due_date|date:"M j, Y" }}</td><td><a class="table-action" href="{% url 'billing:charge_detail' charge.pk %}">Receipt history</a></td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<div class="room-empty-state"><h2>No paid residents for this month</h2><p>Try another month or check the charge list.</p></div>{% endif %}
+    {% if page_obj.paginator.num_pages > 1 %}<nav class="pagination" aria-label="Paid resident pages">{% if page_obj.has_previous %}<a class="admin-link" href="?year={{ year }}&month={{ month }}&q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="admin-link" href="?year={{ year }}&month={{ month }}&q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+</section>
+{% endblock %}

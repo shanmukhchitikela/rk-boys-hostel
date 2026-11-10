@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}{{ charge.resident.full_name }} | {{ charge.period }} | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'billing:charge_list' %}">Billing</a><span class="breadcrumb-divider">/</span>{{ charge.period }}{% endblock %}
+
+{% block content %}
+<section class="billing-detail-page">
+    <div class="page-heading billing-page-heading">
+        <div><p class="eyebrow">CHARGE DETAIL · {{ charge.period }}</p><h1>{{ charge.resident.full_name }}</h1><p class="page-subtitle">{{ charge.resident.phone }} · Due {{ charge.due_date|date:"F j, Y" }}</p></div>
+        <div class="billing-heading-actions"><a class="admin-link" href="{% url 'billing:charge_list' %}"><span aria-hidden="true">&larr;</span> All charges</a>{% if charge.pending_amount > 0 %}<a class="primary-action" href="{% url 'billing:payment_create' charge.pk %}">Record payment</a>{% endif %}</div>
+    </div>
+
+    <div class="billing-summary-grid">
+        <article class="room-summary"><span class="room-summary-label">CHARGE</span><strong>{{ charge.amount|floatformat:2 }}</strong><span class="room-summary-note">{{ charge.period }}</span></article>
+        <article class="room-summary"><span class="room-summary-label">PAID</span><strong>{{ charge.paid_amount|floatformat:2 }}</strong><span class="room-summary-note">{{ charge.payments.count }} payment{{ charge.payments.count|pluralize }}</span></article>
+        <article class="room-summary billing-summary-pending"><span class="room-summary-label">PENDING</span><strong>{{ charge.pending_amount|floatformat:2 }}</strong><span class="room-summary-note">Remaining balance</span></article>
+        <article class="room-summary"><span class="room-summary-label">STATUS</span><strong class="billing-detail-status"><span class="billing-status billing-status-{{ charge.status }}">{{ charge.status_label }}</span></strong><span class="room-summary-note">Calculated from due date and payments</span></article>
+    </div>
+
+    <div class="room-table-heading"><div><h2>Payment history</h2><p>Receipts and payment references for this charge.</p></div></div>
+    {% if charge.payments.all %}
+    <div class="room-table-wrap">
+        <table class="room-table billing-history-table">
+            <thead><tr><th scope="col">Receipt</th><th scope="col">Recorded</th><th scope="col">Mode</th><th scope="col">Reference</th><th scope="col">Amount</th><th scope="col">Notes</th></tr></thead>
+            <tbody>{% for payment in charge.payments.all %}<tr><th scope="row"><a class="room-number receipt-link" href="{% url 'billing:payment_receipt' payment.pk %}">{{ payment.receipt_number }}</a></th><td>{{ payment.recorded_at|date:"M j, Y H:i" }}</td><td>{{ payment.get_payment_mode_display }}</td><td>{{ payment.reference|default:"—" }}</td><td>{{ payment.amount|floatformat:2 }}</td><td>{{ payment.notes|default:"—"|truncatechars:48 }}</td></tr>{% endfor %}</tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="room-empty-state billing-history-empty"><h2>No payments recorded</h2><p>Recorded payments and receipts will appear here.</p></div>
+    {% endif %}
+</section>
+{% endblock %}

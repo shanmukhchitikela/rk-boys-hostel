@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load tz %}
+
+{% block title %}Receipt {{ payment.receipt_number }} | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'billing:charge_list' %}">Billing</a><span class="breadcrumb-divider">/</span><a href="{% url 'billing:charge_detail' charge.pk %}">{{ charge.period }}</a><span class="breadcrumb-divider">/</span>Receipt{% endblock %}
+
+{% block content %}
+<section class="receipt-page">
+    <div class="receipt-actions no-print">
+        <a class="admin-link" href="{% url 'billing:charge_detail' charge.pk %}"><span aria-hidden="true">&larr;</span> Back to charge</a>
+        <button class="primary-action" type="button" onclick="window.print()">Print receipt</button>
+    </div>
+    <article class="receipt-sheet">
+        <header class="receipt-header">
+            <div><p class="eyebrow">PAYMENT RECEIPT</p><h1>{{ hostel_settings.hostel_name }}</h1>{% if hostel_settings.address %}<p>{{ hostel_settings.address|linebreaksbr }}</p>{% endif %}{% if hostel_settings.phone_numbers %}<p>{{ hostel_settings.phone_numbers|linebreaksbr }}</p>{% endif %}{% if hostel_settings.email %}<p>{{ hostel_settings.email }}</p>{% endif %}</div>
+            <div class="receipt-number-block"><span>RECEIPT NUMBER</span><strong>{{ payment.receipt_number }}</strong></div>
+        </header>
+        <div class="receipt-amount"><span>Amount received</span><strong>{{ payment.amount|floatformat:2 }}</strong></div>
+        <dl class="receipt-details">
+            <div><dt>Resident</dt><dd>{{ resident.full_name }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ resident.phone }}</dd></div>
+            <div><dt>Room</dt><dd>{% if room %}{{ room.room_number }}{% else %}Not assigned for this billing period{% endif %}</dd></div>
+            <div><dt>Billing period</dt><dd>{{ charge.period }}</dd></div>
+            <div><dt>Payment mode</dt><dd>{{ payment.get_payment_mode_display }}</dd></div>
+            <div><dt>Payment time</dt><dd>{{ receipt_recorded_at|localtime|date:"F j, Y, g:i A T" }}</dd></div>
+            {% if payment.reference %}<div><dt>Reference</dt><dd>{{ payment.reference }}</dd></div>{% endif %}
+        </dl>
+        {% if hostel_settings.receipt_text %}<p class="receipt-custom-text">{{ hostel_settings.receipt_text|linebreaksbr }}</p>{% endif %}
+        <footer class="receipt-footer"><span>Recorded payment · {{ payment.receipt_number }}</span><span>{{ hostel_settings.hostel_name }}</span></footer>
+    </article>
+</section>
+{% endblock %}

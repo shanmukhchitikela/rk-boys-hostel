@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Advance transaction | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'residents:list' %}">Residents</a><span class="breadcrumb-divider">/</span><a href="{% url 'residents:detail' resident.pk %}">{{ resident.full_name }}</a><span class="breadcrumb-divider">/</span>Advance{% endblock %}
+
+{% block content %}
+<section class="room-form-page">
+    <div class="page-heading room-form-heading">
+        <div>
+            <p class="eyebrow">ADVANCE LEDGER</p>
+            <h1>{% if transaction_type == "deposit" %}Record a deposit{% elif transaction_type == "apply_to_rent" %}Apply advance to rent{% else %}Record a refund{% endif %}</h1>
+            <p class="page-subtitle">{{ resident.full_name }} · Available advance {{ resident.advance_balance|floatformat:2 }}</p>
+        </div>
+        <a class="admin-link" href="{% url 'residents:detail' resident.pk %}"><span aria-hidden="true">&larr;</span> Back to profile</a>
+    </div>
+    <form method="post" class="room-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="room-form-grid">
+            {% for field in form %}
+            <div class="room-form-field{% if field.name == 'notes' %} room-form-field-wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}</div>
+            {% endfor %}
+        </div>
+        <div class="room-form-actions"><a class="admin-link" href="{% url 'residents:detail' resident.pk %}">Cancel</a><button class="primary-action" type="submit">Save transaction</button></div>
+    </form>
+</section>
+{% endblock %}

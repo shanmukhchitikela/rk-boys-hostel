@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Hostel Desk{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">OVERVIEW</p>
+            <h1>Good to see you, {{ user.get_username }}.</h1>
+            <p class="page-subtitle">Operations summary for the selected billing month.</p>
+        </div>
+        <a class="admin-link" href="{% url 'admin:index' %}"><span aria-hidden="true">&#8599;</span> Open admin</a>
+    </div>
+
+    <div class="dashboard-period-row">
+        <div class="dashboard-section-title"><h2>Workspace summary</h2><p>{{ summary.month|stringformat:"02d" }}/{{ summary.year }}</p></div>
+        <form method="get" class="dashboard-month-form" aria-label="Select billing month">
+            <label for="{{ month_form.year.id_for_label }}">Year</label>{{ month_form.year }}
+            <label for="{{ month_form.month.id_for_label }}">Month</label>{{ month_form.month }}
+            <button class="admin-link" type="submit">View month</button>
+        </form>
+    </div>
+
+    <div class="dashboard-metric-grid">
+        <article class="dashboard-metric"><span class="room-summary-label">ACTIVE RESIDENTS</span><strong>{{ summary.active_residents }}</strong><a href="{% url 'residents:list' %}?status=active">View residents <span aria-hidden="true">&#8599;</span></a></article>
+        <article class="dashboard-metric"><span class="room-summary-label">TOTAL CAPACITY</span><strong>{{ summary.total_capacity }}</strong><a href="{% url 'rooms:list' %}">View rooms <span aria-hidden="true">&#8599;</span></a></article>
+        <article class="dashboard-metric dashboard-metric-available"><span class="room-summary-label">VACANCIES</span><strong>{{ summary.vacancies }}</strong><a href="{% url 'rooms:list' %}">Bed availability <span aria-hidden="true">&#8599;</span></a></article>
+        <article class="dashboard-metric"><span class="room-summary-label">EXPECTED CHARGES</span><strong>{{ summary.expected_charges|floatformat:2 }}</strong><a href="{% url 'billing:charge_list' %}?year={{ summary.year }}&month={{ summary.month }}">Billing detail <span aria-hidden="true">&#8599;</span></a></article>
+        <article class="dashboard-metric"><span class="room-summary-label">AMOUNT COLLECTED</span><strong>{{ summary.amount_collected|floatformat:2 }}</strong><a href="{% url 'billing:paid_residents' %}?year={{ summary.year }}&month={{ summary.month }}">Paid residents <span aria-hidden="true">&#8599;</span></a></article>
+        <article class="dashboard-metric dashboard-metric-balance"><span class="room-summary-label">REMAINING BALANCE</span><strong>{{ summary.remaining_balance|floatformat:2 }}</strong><a href="{% url 'billing:attention_residents' %}?year={{ summary.year }}&month={{ summary.month }}">Due residents <span aria-hidden="true">&#8599;</span></a></article>
+    </div>
+
+    <div class="dashboard-section-title dashboard-status-title"><h2>Charge status</h2><a href="{% url 'billing:charge_list' %}?year={{ summary.year }}&month={{ summary.month }}">All charges <span aria-hidden="true">&#8599;</span></a></div>
+    <div class="dashboard-status-grid">
+        <a class="dashboard-status-card" href="{% url 'billing:paid_residents' %}?year={{ summary.year }}&month={{ summary.month }}"><span class="billing-status billing-status-paid">Paid</span><strong>{{ summary.paid_count }}</strong><span>residents</span></a>
+        <a class="dashboard-status-card" href="{% url 'billing:charge_list' %}?year={{ summary.year }}&month={{ summary.month }}&status=pending"><span class="billing-status billing-status-pending">Pending</span><strong>{{ summary.pending_count }}</strong><span>residents</span></a>
+        <a class="dashboard-status-card" href="{% url 'billing:attention_residents' %}?year={{ summary.year }}&month={{ summary.month }}&status=due_soon"><span class="billing-status billing-status-due_soon">Due soon</span><strong>{{ summary.due_soon_count }}</strong><span>residents</span></a>
+        <a class="dashboard-status-card" href="{% url 'billing:attention_residents' %}?year={{ summary.year }}&month={{ summary.month }}&status=overdue"><span class="billing-status billing-status-overdue">Overdue</span><strong>{{ summary.overdue_count }}</strong><span>residents</span></a>
+    </div>
+</section>
+{% endblock %}

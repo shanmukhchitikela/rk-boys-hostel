@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit resident{% else %}Add resident{% endif %} | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'residents:list' %}">Residents</a><span class="breadcrumb-divider">/</span>{% if is_edit %}Edit profile{% else %}Add resident{% endif %}{% endblock %}
+
+{% block content %}
+<section class="room-form-page">
+    <div class="page-heading room-form-heading">
+        <div>
+            <p class="eyebrow">RESIDENT MANAGEMENT</p>
+            <h1>{% if is_edit %}Edit resident{% else %}Add a resident{% endif %}</h1>
+            <p class="page-subtitle">Record contact details, proof ID, joining date, and room allocation.</p>
+        </div>
+        <a class="admin-link" href="{% if is_edit %}{% url 'residents:detail' resident.pk %}{% else %}{% url 'residents:list' %}{% endif %}"><span aria-hidden="true">&larr;</span> Cancel</a>
+    </div>
+
+    <form method="post" class="room-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="room-form-grid">
+            {% for field in form %}
+            <div class="room-form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="room-field-help">{{ field.help_text }}</span>{% endif %}
+                {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="room-form-actions">
+            <a class="admin-link" href="{% if is_edit %}{% url 'residents:detail' resident.pk %}{% else %}{% url 'residents:list' %}{% endif %}">Cancel</a>
+            <button class="primary-action" type="submit">{% if is_edit %}Save changes{% else %}Create profile{% endif %}</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

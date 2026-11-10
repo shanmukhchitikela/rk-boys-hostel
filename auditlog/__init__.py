@@ -1,0 +1,1 @@
+"""Hostel settings and staff audit history."""

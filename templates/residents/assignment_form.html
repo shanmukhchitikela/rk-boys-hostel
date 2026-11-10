@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Assign {{ resident.full_name }} | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'residents:list' %}">Residents</a><span class="breadcrumb-divider">/</span><a href="{% url 'residents:detail' resident.pk %}">{{ resident.full_name }}</a><span class="breadcrumb-divider">/</span>Assign room{% endblock %}
+
+{% block content %}
+<section class="room-form-page">
+    <div class="page-heading room-form-heading">
+        <div>
+            <p class="eyebrow">ROOM ASSIGNMENT</p>
+            <h1>Assign a room</h1>
+            <p class="page-subtitle">Choose an available room for {{ resident.full_name }}.</p>
+        </div>
+        <a class="admin-link" href="{% url 'residents:detail' resident.pk %}"><span aria-hidden="true">&larr;</span> Back to profile</a>
+    </div>
+
+    <form method="post" class="room-form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="room-form-grid">
+            {% for field in form %}
+            <div class="room-form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="room-field-help">{{ field.help_text }}</span>{% endif %}
+                {% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="room-form-actions">
+            <a class="admin-link" href="{% url 'residents:detail' resident.pk %}">Cancel</a>
+            <button class="primary-action" type="submit">Assign room</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

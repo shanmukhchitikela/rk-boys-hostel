@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Due residents | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'billing:charge_list' %}">Billing</a><span class="breadcrumb-divider">/</span>Due residents{% endblock %}
+
+{% block content %}
+<section class="billing-page">
+    <div class="page-heading billing-page-heading">
+        <div><p class="eyebrow">FOLLOW-UP LIST</p><h1>Due residents</h1><p class="page-subtitle">Charges due soon or overdue for {{ month|stringformat:"02d" }}/{{ year }}.</p></div>
+        <a class="admin-link" href="{% url 'billing:charge_list' %}"><span aria-hidden="true">&larr;</span> All billing</a>
+    </div>
+    <form method="get" class="billing-filter-form" role="search">
+        <div class="billing-month-controls"><label for="{{ month_form.year.id_for_label }}">Year</label>{{ month_form.year }}<label for="{{ month_form.month.id_for_label }}">Month</label>{{ month_form.month }}</div>
+        <label class="billing-search-field" for="attention-search">Search residents<input id="attention-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Name or phone"></label>
+        <label for="attention-status">Status<select id="attention-status" class="form-control" name="status"><option value="">Due soon and overdue</option>{% for value, label in attention_choices %}<option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <button class="admin-link" type="submit">Filter</button>
+    </form>
+    {% if page_obj.object_list %}
+    <div class="room-table-wrap"><table class="room-table billing-table"><thead><tr><th scope="col">Resident</th><th scope="col">Phone</th><th scope="col">Period</th><th scope="col">Pending</th><th scope="col">Due date</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead><tbody>
+        {% for charge in page_obj %}<tr><th scope="row"><span class="room-number">{{ charge.resident.full_name }}</span></th><td>{{ charge.resident.phone }}</td><td>{{ charge.period }}</td><td>{{ charge.pending_amount|floatformat:2 }}</td><td>{{ charge.due_date|date:"M j, Y" }}</td><td><span class="billing-status billing-status-{{ charge.status }}">{{ charge.status_label }}</span></td><td><a class="table-action" href="{% url 'billing:charge_detail' charge.pk %}">View charge</a></td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<div class="room-empty-state"><h2>No due residents for this month</h2><p>No unpaid charge is due within the next seven days or overdue.</p></div>{% endif %}
+    {% if page_obj.paginator.num_pages > 1 %}<nav class="pagination" aria-label="Due resident pages">{% if page_obj.has_previous %}<a class="admin-link" href="?year={{ year }}&month={{ month }}&q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="admin-link" href="?year={{ year }}&month={{ month }}&q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly billing | Hostel Desk{% endblock %}
+{% block breadcrumb %}Billing{% endblock %}
+
+{% block content %}
+<section class="billing-page">
+    <div class="page-heading billing-page-heading">
+        <div>
+            <p class="eyebrow">FINANCE</p>
+            <h1>Monthly billing</h1>
+            <p class="page-subtitle">Charges, balances, and recorded payments.</p>
+        </div>
+        <a class="primary-action" href="{% url 'billing:charge_create' %}"><span aria-hidden="true">+</span> Create charge</a>
+    </div>
+
+    <form method="get" class="billing-filter-form" role="search">
+        <label class="billing-search-field" for="billing-search">Search
+            <input id="billing-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Resident or receipt">
+        </label>
+        <label for="billing-year">Year<input id="billing-year" class="form-control" type="number" min="1" max="9999" name="year" value="{{ year_filter }}"></label>
+        <label for="billing-month">Month
+            <select id="billing-month" class="form-control" name="month">
+                <option value="">All months</option>
+                {% for value, label in month_choices %}<option value="{{ value }}"{% if month_filter == value|stringformat:"s" %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </label>
+        <label for="billing-status">Status
+            <select id="billing-status" class="form-control" name="status">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}<option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </label>
+        <button class="admin-link" type="submit">Filter</button>
+        {% if query or year_filter or month_filter or status_filter %}<a class="filter-reset" href="{% url 'billing:charge_list' %}">Clear</a>{% endif %}
+    </form>
+
+    {% if page_obj.object_list %}
+    <div class="room-table-wrap">
+        <table class="room-table billing-table">
+            <thead><tr><th scope="col">Resident</th><th scope="col">Period</th><th scope="col">Charge</th><th scope="col">Paid</th><th scope="col">Pending</th><th scope="col">Due date</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead>
+            <tbody>
+                {% for charge in page_obj %}
+                <tr>
+                    <th scope="row"><span class="room-number">{{ charge.resident.full_name }}</span><span class="room-secondary">{{ charge.resident.phone }}</span></th>
+                    <td>{{ charge.period }}</td>
+                    <td>{{ charge.amount|floatformat:2 }}</td>
+                    <td>{{ charge.paid_amount|floatformat:2 }}</td>
+                    <td>{{ charge.pending_amount|floatformat:2 }}</td>
+                    <td>{{ charge.due_date|date:"M j, Y" }}</td>
+                    <td><span class="billing-status billing-status-{{ charge.status }}">{{ charge.status_label }}</span></td>
+                    <td><a class="table-action" href="{% url 'billing:charge_detail' charge.pk %}">Details</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="room-empty-state">
+        <span class="module-icon" aria-hidden="true">B</span>
+        <h2>{% if query or year_filter or month_filter or status_filter %}No matching charges{% else %}No monthly charges yet{% endif %}</h2>
+        <p>{% if query or year_filter or month_filter or status_filter %}Adjust your filters or search terms.{% else %}Create a charge from an active resident's agreed monthly fee.{% endif %}</p>
+        {% if not query and not year_filter and not month_filter and not status_filter %}<a class="primary-action" href="{% url 'billing:charge_create' %}"><span aria-hidden="true">+</span> Create charge</a>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Billing pages">
+        {% if page_obj.has_previous %}<a class="admin-link" href="?q={{ query|urlencode }}&year={{ year_filter|urlencode }}&month={{ month_filter|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="admin-link" href="?q={{ query|urlencode }}&year={{ year_filter|urlencode }}&month={{ month_filter|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>
+{% endblock %}

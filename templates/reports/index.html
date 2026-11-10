@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Reports | Hostel Desk{% endblock %}
+{% block breadcrumb %}Reports{% endblock %}
+
+{% block content %}
+<section class="reports-page">
+    <div class="page-heading reports-heading">
+        <div><p class="eyebrow">OPERATIONS</p><h1>Reports</h1><p class="page-subtitle">Filtered totals and operational exports.</p></div>
+    </div>
+
+    <form method="get" class="reports-filter-form">
+        <div class="report-period-controls">
+            <label for="{{ month_form.year.id_for_label }}">Year</label>{{ month_form.year }}
+            <label for="{{ month_form.month.id_for_label }}">Month</label>{{ month_form.month }}
+        </div>
+        <label for="report-search">Search<input id="report-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Name, phone, or room"></label>
+        <label for="report-resident-status">Resident status<select id="report-resident-status" class="form-control" name="resident_status"><option value="">All</option>{% for value, label in resident_status_choices %}<option value="{{ value }}"{% if resident_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <label for="report-floor">Room floor<input id="report-floor" class="form-control" type="number" min="0" name="floor" value="{{ floor_text }}"></label>
+        <label for="report-charge-status">Charge status<select id="report-charge-status" class="form-control" name="charge_status"><option value="">All</option>{% for value, label in charge_status_choices %}<option value="{{ value }}"{% if charge_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <label for="report-advance-type">Advance type<select id="report-advance-type" class="form-control" name="transaction_type"><option value="">All</option>{% for value, label in advance_type_choices %}<option value="{{ value }}"{% if transaction_type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <button class="admin-link" type="submit">Apply filters</button>
+        {% if query or resident_status or floor_text or charge_status or transaction_type %}<a class="filter-reset" href="{% url 'reports:index' %}?year={{ year }}&month={{ month }}">Clear filters</a>{% endif %}
+    </form>
+
+    <section class="report-summary-section">
+        <div class="report-section-heading"><h2>Residents and rooms</h2><span>{{ month|stringformat:"02d" }}/{{ year }}</span></div>
+        <div class="report-summary-grid report-summary-grid-four">
+            <article class="room-summary"><span class="room-summary-label">RESIDENTS</span><strong>{{ resident_count }}</strong></article>
+            <article class="room-summary"><span class="room-summary-label">ROOMS</span><strong>{{ room_count }}</strong></article>
+            <article class="room-summary"><span class="room-summary-label">CAPACITY</span><strong>{{ total_capacity }}</strong></article>
+            <article class="room-summary room-summary-available"><span class="room-summary-label">VACANCIES</span><strong>{{ vacancies }}</strong></article>
+        </div>
+    </section>
+
+    <section class="report-summary-section">
+        <div class="report-section-heading"><h2>Monthly billing</h2><span>{{ charge_count }} charges</span></div>
+        <div class="report-summary-grid report-summary-grid-three">
+            <article class="room-summary"><span class="room-summary-label">EXPECTED</span><strong>{{ expected_charges|floatformat:2 }}</strong></article>
+            <article class="room-summary"><span class="room-summary-label">COLLECTED</span><strong>{{ amount_collected|floatformat:2 }}</strong></article>
+            <article class="room-summary billing-summary-pending"><span class="room-summary-label">REMAINING</span><strong>{{ remaining_balance|floatformat:2 }}</strong></article>
+        </div>
+    </section>
+
+    <section class="report-summary-section">
+        <div class="report-section-heading"><h2>Advance ledger</h2><span>Transactions dated in selected month</span></div>
+        <div class="report-summary-grid report-summary-grid-three">
+            <article class="room-summary"><span class="room-summary-label">DEPOSITS</span><strong>{{ deposit_total|floatformat:2 }}</strong></article>
+            <article class="room-summary"><span class="room-summary-label">APPLIED TO RENT</span><strong>{{ applied_total|floatformat:2 }}</strong></article>
+            <article class="room-summary"><span class="room-summary-label">REFUNDS</span><strong>{{ refund_total|floatformat:2 }}</strong></article>
+        </div>
+    </section>
+
+    <section class="report-exports-section">
+        <div class="report-section-heading"><h2>CSV exports</h2></div>
+        <div class="report-export-list">
+            <a class="report-export-row" href="{% url 'reports:residents_csv' %}?{{ request.GET.urlencode }}"><span><strong>Residents</strong><small>Contact, status, joined date, and current room</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
+            <a class="report-export-row" href="{% url 'reports:rooms_csv' %}?{{ request.GET.urlencode }}"><span><strong>Rooms and occupancy</strong><small>Capacity, active occupants, and available beds</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
+            {% if can_export_finances %}
+            <a class="report-export-row" href="{% url 'reports:charges_csv' %}?{{ request.GET.urlencode }}"><span><strong>Monthly charges</strong><small>Charges and calculated balances for {{ month|stringformat:"02d" }}/{{ year }}</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
+            <a class="report-export-row" href="{% url 'reports:payments_csv' %}?{{ request.GET.urlencode }}"><span><strong>Payments</strong><small>Receipt, mode, amount, and reference for selected month</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
+            <a class="report-export-row" href="{% url 'reports:advances_csv' %}?{{ request.GET.urlencode }}"><span><strong>Advance ledger</strong><small>Deposits, rent applications, refunds, and recorder</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
+            {% endif %}
+        </div>
+    </section>
+</section>
+{% endblock %}

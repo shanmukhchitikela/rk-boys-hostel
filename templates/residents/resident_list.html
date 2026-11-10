@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Residents | Hostel Desk{% endblock %}
+{% block breadcrumb %}Residents{% endblock %}
+
+{% block content %}
+<section class="residents-page">
+    <div class="page-heading resident-page-heading">
+        <div>
+            <p class="eyebrow">RESIDENT MANAGEMENT</p>
+            <h1>Residents</h1>
+            <p class="page-subtitle">Profiles, current room assignments, and stay history.</p>
+        </div>
+        <a class="primary-action" href="{% url 'residents:create' %}"><span aria-hidden="true">+</span> Add resident</a>
+    </div>
+
+    <form method="get" class="resident-filter-form" role="search">
+        <label class="resident-search-field" for="resident-search">Search residents
+            <input id="resident-search" type="search" name="q" value="{{ query }}" placeholder="Name or phone" class="form-control">
+        </label>
+        <label class="resident-status-field" for="resident-status">Status
+            <select id="resident-status" name="status" class="form-control">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}<option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </label>
+        <button class="admin-link" type="submit">Filter</button>
+        {% if query or status_filter %}<a class="filter-reset" href="{% url 'residents:list' %}">Clear</a>{% endif %}
+    </form>
+
+    {% if page_obj.object_list %}
+    <div class="room-table-wrap">
+        <table class="room-table resident-table">
+            <thead><tr><th scope="col">Resident</th><th scope="col">Phone</th><th scope="col">Room</th><th scope="col">Joining date</th><th scope="col">Monthly fee</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Profile</span></th></tr></thead>
+            <tbody>
+                {% for resident in page_obj %}
+                <tr>
+                    <th scope="row"><span class="room-number">{{ resident.full_name }}</span></th>
+                    <td>{{ resident.phone }}</td>
+                    <td>{% if resident.room %}{{ resident.room.room_number }}{% else %}<span class="room-secondary-inline">Not assigned</span>{% endif %}</td>
+                    <td>{{ resident.joining_date|date:"M j, Y" }}</td>
+                    <td>{{ resident.agreed_monthly_fee|floatformat:2 }}</td>
+                    <td><span class="resident-status resident-status-{{ resident.status }}">{{ resident.get_status_display }}</span></td>
+                    <td><a class="table-action" href="{% url 'residents:detail' resident.pk %}">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="room-empty-state">
+        <span class="module-icon" aria-hidden="true">P</span>
+        <h2>{% if query or status_filter %}No matching residents{% else %}No residents yet{% endif %}</h2>
+        <p>{% if query or status_filter %}Try a different search or status filter.{% else %}Create a resident profile to record a stay.{% endif %}</p>
+        {% if not query and not status_filter %}<a class="primary-action" href="{% url 'residents:create' %}"><span aria-hidden="true">+</span> Add resident</a>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Resident list pages">
+        {% if page_obj.has_previous %}<a class="admin-link" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="admin-link" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>
+{% endblock %}

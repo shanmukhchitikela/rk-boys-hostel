@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Record payment | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'billing:charge_list' %}">Billing</a><span class="breadcrumb-divider">/</span><a href="{% url 'billing:charge_detail' charge.pk %}">{{ charge.period }}</a><span class="breadcrumb-divider">/</span>Record payment{% endblock %}
+
+{% block content %}
+<section class="room-form-page">
+    <div class="page-heading room-form-heading">
+        <div><p class="eyebrow">PAYMENT RECORD</p><h1>Record a payment</h1><p class="page-subtitle">{{ charge.resident.full_name }} · {{ charge.period }} · Balance {{ charge.pending_amount|floatformat:2 }}</p></div>
+        <a class="admin-link" href="{% url 'billing:charge_detail' charge.pk %}"><span aria-hidden="true">&larr;</span> Back to charge</a>
+    </div>
+    <form method="post" class="room-form" novalidate>
+        {% csrf_token %}
+        {{ form.submission_key }}
+        {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="room-form-grid">
+            {% for field in form.visible_fields %}
+            <div class="room-form-field{% if field.name == 'notes' %} room-form-field-wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}</div>
+            {% endfor %}
+        </div>
+        <div class="room-form-actions"><a class="admin-link" href="{% url 'billing:charge_detail' charge.pk %}">Cancel</a><button class="primary-action" type="submit">Save payment</button></div>
+    </form>
+</section>
+{% endblock %}

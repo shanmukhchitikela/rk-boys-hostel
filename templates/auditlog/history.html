@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Audit history | Hostel Desk{% endblock %}
+{% block breadcrumb %}Audit history{% endblock %}
+
+{% block content %}
+<section class="audit-page">
+    <div class="page-heading">
+        <div><p class="eyebrow">SECURITY</p><h1>Audit history</h1><p class="page-subtitle">Staff actions and affected records.</p></div>
+    </div>
+    <form method="get" class="audit-filter-form">
+        <label for="{{ form.q.id_for_label }}">{{ form.q.label }}{{ form.q }}</label>
+        <label for="{{ form.action.id_for_label }}">{{ form.action.label }}{{ form.action }}</label>
+        <label for="{{ form.actor.id_for_label }}">Staff user{{ form.actor }}</label>
+        <label for="{{ form.date_from.id_for_label }}">{{ form.date_from.label }}{{ form.date_from }}</label>
+        <label for="{{ form.date_to.id_for_label }}">{{ form.date_to.label }}{{ form.date_to }}</label>
+        <button class="admin-link" type="submit">Filter</button>
+        {% if request.GET %}<a class="filter-reset" href="{% url 'auditlog:history' %}">Clear</a>{% endif %}
+    </form>
+    {% if page_obj.object_list %}
+    <div class="room-table-wrap">
+        <table class="room-table audit-table">
+            <thead><tr><th scope="col">Time</th><th scope="col">Staff user</th><th scope="col">Action</th><th scope="col">Affected record</th><th scope="col">Changed fields</th></tr></thead>
+            <tbody>
+                {% for event in page_obj %}
+                <tr>
+                    <td>{{ event.timestamp|date:"M j, Y H:i" }}</td>
+                    <td>{{ event.actor.get_username }}</td>
+                    <td>{{ event.action_label }}</td>
+                    <td>{{ event.content_type.model|title }} · {{ event.object_label }}</td>
+                    <td>{{ event.details.changed_fields|join:", "|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="room-empty-state audit-empty"><h2>No audit entries</h2><p>Recorded staff actions will appear here.</p></div>{% endif %}
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Audit history pages">
+        {% if page_obj.has_previous %}<a class="admin-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="admin-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>
+{% endblock %}

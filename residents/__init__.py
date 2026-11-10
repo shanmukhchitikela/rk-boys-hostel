@@ -1,0 +1,1 @@
+"""Resident profiles and room assignments."""

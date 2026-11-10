@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ resident.full_name }} | Hostel Desk{% endblock %}
+{% block breadcrumb %}<a href="{% url 'residents:list' %}">Residents</a><span class="breadcrumb-divider">/</span>{{ resident.full_name }}{% endblock %}
+
+{% block content %}
+<section class="resident-detail-page">
+    <div class="page-heading resident-detail-heading">
+        <div>
+            <p class="eyebrow">RESIDENT PROFILE</p>
+            <h1>{{ resident.full_name }}</h1>
+            <p class="page-subtitle">Joined {{ resident.joining_date|date:"F j, Y" }} · {{ resident.phone }}</p>
+        </div>
+        <div class="resident-heading-actions">
+            <a class="admin-link" href="{% url 'residents:edit' resident.pk %}">Edit profile</a>
+            {% if resident.status == "active" and not resident.current_assignment %}<a class="primary-action" href="{% url 'residents:assign_room' resident.pk %}">Assign to room</a>{% endif %}
+        </div>
+    </div>
+
+    <div class="resident-profile-grid">
+        <section class="resident-profile-section">
+            <div class="room-table-heading"><div><h2>Profile details</h2><p>Resident account and agreed charges.</p></div></div>
+            <dl class="resident-detail-list">
+                <div><dt>Status</dt><dd><span class="resident-status resident-status-{{ resident.status }}">{{ resident.get_status_display }}</span></dd></div>
+                <div><dt>Phone</dt><dd>{{ resident.phone }}</dd></div>
+                <div><dt>Emergency contact</dt><dd>{{ resident.emergency_contact|default:"Not provided" }}</dd></div>
+                <div><dt>Joining date</dt><dd>{{ resident.joining_date|date:"F j, Y" }}</dd></div>
+                <div><dt>Agreed monthly fee</dt><dd>{{ resident.agreed_monthly_fee|floatformat:2 }}</dd></div>
+                <div><dt>Current room</dt><dd>{% if resident.room %}{{ resident.room.room_number }}{% else %}<span class="room-secondary-inline">Not assigned</span>{% endif %}</dd></div>
+            </dl>
+            <div class="advance-balance-panel">
+                <div><span class="room-summary-label">AVAILABLE ADVANCE</span><strong>{{ resident.advance_balance|floatformat:2 }}</strong></div>
+                <div class="advance-action-row">
+                    {% if resident.status == "active" %}<a class="admin-link" href="{% url 'residents:advance_deposit' resident.pk %}">Record deposit</a>{% endif %}
+                    {% if can_apply_advance and resident.advance_balance > 0 and resident.status == "active" %}<a class="admin-link" href="{% url 'residents:advance_apply' resident.pk %}">Apply to rent</a>{% endif %}
+                    {% if can_refund_advance and resident.advance_balance > 0 %}<a class="danger-action" href="{% url 'residents:advance_refund' resident.pk %}">Record refund</a>{% endif %}
+                </div>
+            </div>
+            {% if resident.status == "active" %}
+            <form method="post" action="{% url 'residents:exit' resident.pk %}" class="resident-exit-form" onsubmit="return confirm('Mark this resident as exited? Their room assignment will be closed and retained in history.');">
+                {% csrf_token %}
+                <button class="danger-action" type="submit">Mark as exited</button>
+            </form>
+            {% endif %}
+        </section>
+
+        <section class="resident-profile-section resident-history-section">
+            <div class="room-table-heading"><div><h2>Room assignment history</h2><p>Past assignments remain available after exit.</p></div></div>
+            {% if resident.room_assignments.all %}
+            <div class="room-table-wrap">
+                <table class="room-table">
+                    <thead><tr><th scope="col">Room</th><th scope="col">Start date</th><th scope="col">End date</th></tr></thead>
+                    <tbody>
+                        {% for assignment in resident.room_assignments.all %}
+                        <tr><th scope="row"><span class="room-number">{{ assignment.room.room_number }}</span></th><td>{{ assignment.start_date|date:"M j, Y" }}</td><td>{% if assignment.end_date %}{{ assignment.end_date|date:"M j, Y" }}{% else %}<span class="availability-value">Current</span>{% endif %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="room-empty-state resident-history-empty"><h2>No assignments yet</h2><p>Room stays will appear here after assignment.</p></div>
+            {% endif %}
+        </section>
+    </div>
+
+    <section class="resident-profile-section advance-history-section">
+        <div class="room-table-heading"><div><h2>Advance ledger</h2><p>Deposits, applications to rent, and refunds. Entries are retained as history.</p></div></div>
+        {% if resident.advance_transactions.all %}
+        <div class="room-table-wrap"><table class="room-table advance-table"><thead><tr><th scope="col">Date</th><th scope="col">Transaction</th><th scope="col">Amount</th><th scope="col">Reference</th><th scope="col">Rent charge</th><th scope="col">Recorded by</th></tr></thead><tbody>
+            {% for entry in resident.advance_transactions.all %}<tr><td>{{ entry.date|date:"M j, Y" }}</td><td>{{ entry.get_transaction_type_display }}</td><td>{{ entry.amount|floatformat:2 }}</td><td>{{ entry.reference|default:"—" }}</td><td>{% if entry.charge %}<a href="{% url 'billing:charge_detail' entry.charge_id %}">{{ entry.charge.period }}</a>{% else %}—{% endif %}</td><td>{% if entry.recorded_by %}{{ entry.recorded_by.get_username }}{% else %}Legacy opening balance{% endif %}</td></tr>{% endfor %}
+        </tbody></table></div>
+        {% else %}<div class="room-empty-state resident-history-empty"><h2>No advance transactions</h2><p>Ledger history will appear here when an advance is recorded.</p></div>{% endif %}
+    </section>
+</section>
+{% endblock %}
