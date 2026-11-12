@@ -39,6 +39,32 @@ class Charge(models.Model):
     def status_label(self):
         return self.get_status_display()
 
+    # ------------------------------------------------------------------
+    # Dynamic status helpers (computed from due_date vs today — no DB field)
+    # ------------------------------------------------------------------
+
+    @property
+    def effective_status_info(self):
+        from billing.billing_utils import classify_charge
+        from django.utils import timezone
+        return classify_charge(self, timezone.localdate())
+
+    @property
+    def display_status(self):
+        return self.effective_status_info['display_status']
+
+    @property
+    def badge_text(self):
+        return self.effective_status_info['badge_text']
+
+    @property
+    def days_overdue(self):
+        return self.effective_status_info['days_overdue']
+
+    @property
+    def days_until_due(self):
+        return self.effective_status_info['days_until_due']
+
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = (
         ('Cash', 'Cash'),

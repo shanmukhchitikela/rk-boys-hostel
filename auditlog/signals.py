@@ -10,4 +10,4 @@ def log_payment(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Charge)
 def log_charge(sender, instance, created, **kwargs):
     if created:
-        print(f"AuditLog: Charge of ₹{instance.amount} created for {instance.resident.full_name}")
+        print(f"AuditLog: Charge of ₹{instance.amount} created for {instance.resident.full_name}")py manage.py makemigrations billing

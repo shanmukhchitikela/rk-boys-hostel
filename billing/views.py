@@ -8,25 +8,30 @@ from django.db.models import Q
 from django.utils import timezone
 from .models import Charge, Payment
 from .forms import ChargeForm, PaymentForm
+from .billing_utils import sync_resident_billing_statuses, classify_charge, DUE_SOON_DAYS
 from rooms.models import Room
 from rooms.utils import natural_room_key, natural_resident_key
 
 def charge_list(request):
-    all_charges = Charge.objects.all().select_related('resident', 'resident__room').order_by('-due_date', '-id')
+    # Auto-sync: create missing monthly charges + update OVERDUE statuses
+    sync_resident_billing_statuses()
+
+    all_charges_qs = Charge.objects.all().select_related('resident', 'resident__room').order_by('-due_date', '-id')
     today = timezone.localdate()
-    due_soon_threshold = today + timedelta(days=7)
 
-    # Compute live tab counts across all charges
-    count_all = all_charges.count()
-    count_paid = 0
-    count_pending = 0
-    count_overdue = 0
+    # Compute live tab counts using classify_charge (source of truth)
+    all_charges_list = list(all_charges_qs)
+    count_all = len(all_charges_list)
+    count_paid = count_pending = count_due_soon = count_overdue = 0
 
-    for c in all_charges:
-        if c.status == 'PAID' or c.pending_amount <= Decimal('0.00'):
+    for c in all_charges_list:
+        sc = classify_charge(c, today)['status_code']
+        if sc == 'PAID':
             count_paid += 1
-        elif c.due_date < today or c.status == 'OVERDUE':
+        elif sc == 'OVERDUE':
             count_overdue += 1
+        elif sc == 'DUE_SOON':
+            count_due_soon += 1
         else:
             count_pending += 1
 
@@ -37,31 +42,18 @@ def charge_list(request):
     year_filter = request.GET.get('year', '').strip()
     month_filter = request.GET.get('month', '').strip()
     status_filter = request.GET.get('status', '').strip()
-    due_filter = request.GET.get('due', '').strip()
 
-    charges = all_charges
+    charges = all_charges_qs
 
-    # Apply tab filter
-    if tab == 'paid':
-        charges = charges.filter(Q(status='PAID'))
-    elif tab == 'pending':
-        charges = charges.filter(Q(status='PENDING') & Q(due_date__gte=today))
-    elif tab == 'overdue':
-        charges = charges.filter(Q(status='OVERDUE') | (Q(status__in=['PENDING', 'PARTIAL']) & Q(due_date__lt=today)))
+    # Apply room filter early (ORM level)
+    if room_filter:
+        charges = charges.filter(resident__room_id=room_filter)
 
-    # Apply specific status filter if passed
-    if status_filter:
-        if status_filter == 'PAID':
-            charges = charges.filter(status='PAID')
-        elif status_filter == 'PENDING':
-            charges = charges.filter(status='PENDING')
-        elif status_filter == 'OVERDUE':
-            charges = charges.filter(Q(status='OVERDUE') | (Q(status__in=['PENDING', 'PARTIAL']) & Q(due_date__lt=today)))
-        elif status_filter == 'PARTIAL':
-            charges = charges.filter(status='PARTIAL')
-
-    if due_filter == 'soon':
-        charges = charges.filter(status__in=['PENDING', 'PARTIAL'], due_date__gte=today, due_date__lte=due_soon_threshold)
+    # Apply year/month filter (ORM level on due_date — safe on DateField)
+    if year_filter and year_filter.isdigit():
+        charges = charges.filter(due_date__year=int(year_filter))
+    if month_filter and month_filter.isdigit():
+        charges = charges.filter(due_date__month=int(month_filter))
 
     # Apply search query
     if query:
@@ -72,23 +64,34 @@ def charge_list(request):
             Q(title__icontains=query)
         )
 
-    # Apply room filter
-    if room_filter:
-        charges = charges.filter(resident__room_id=room_filter)
-
-    # Apply year/month filter
-    if year_filter and year_filter.isdigit():
-        charges = charges.filter(due_date__year=int(year_filter))
-    if month_filter and month_filter.isdigit():
-        charges = charges.filter(due_date__month=int(month_filter))
-
-    # Room-wise natural ascending numerical ordering (1, 2, ..., 10, 11)
+    # Convert to list for Python-level tab / status filtering using classify_charge
     charges_list = list(charges)
+
+    if tab == 'paid':
+        charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] == 'PAID']
+    elif tab == 'due_soon':
+        charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] == 'DUE_SOON']
+    elif tab == 'overdue':
+        charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] == 'OVERDUE']
+    elif tab == 'pending':
+        # "Pending" tab = all upcoming unpaid (Pending + Due Soon)
+        charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] in ('PENDING', 'DUE_SOON')]
+
+    if status_filter:
+        if status_filter == 'PAID':
+            charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] == 'PAID']
+        elif status_filter == 'OVERDUE':
+            charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] == 'OVERDUE']
+        elif status_filter == 'DUE_SOON':
+            charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] == 'DUE_SOON']
+        elif status_filter == 'PENDING':
+            charges_list = [c for c in charges_list if classify_charge(c, today)['status_code'] == 'PENDING']
+
+    # Natural room-wise sort
     charges_list.sort(key=lambda c: natural_resident_key(c.resident))
 
     paginator = Paginator(charges_list, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     # Naturally sorted rooms for the dropdown
     all_rooms = sorted(Room.objects.all(), key=natural_room_key)
@@ -101,12 +104,12 @@ def charge_list(request):
     status_choices = Charge.STATUS_CHOICES
 
     context = {
-        'charges': charges,
         'page_obj': page_obj,
         'tab': tab,
         'count_all': count_all,
         'count_paid': count_paid,
         'count_pending': count_pending,
+        'count_due_soon': count_due_soon,
         'count_overdue': count_overdue,
         'query': query,
         'room_filter': room_filter,
@@ -117,6 +120,7 @@ def charge_list(request):
         'month_choices': month_choices,
         'status_choices': status_choices,
         'today': today,
+        'DUE_SOON_DAYS': DUE_SOON_DAYS,
     }
     return render(request, 'billing/charge_list.html', context)
 

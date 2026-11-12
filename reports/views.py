@@ -1,5 +1,5 @@
 import csv
-from datetime import timedelta
+import re
 from decimal import Decimal
 
 from django.contrib import messages
@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
+from billing.billing_utils import sync_resident_billing_statuses, classify_charge
 from billing.models import Charge, Payment
 from residents.models import Resident
 from rooms.models import Room
@@ -22,6 +23,9 @@ from rooms.utils import natural_room_key, natural_resident_key
 # ---------------------------------------------------------------------------
 
 def index(request):
+    # Auto-sync monthly charges and overdue statuses on Dashboard load
+    sync_resident_billing_statuses()
+
     total_capacity = Room.objects.aggregate(total=Sum('capacity'))['total'] or 0
     active_residents = Resident.objects.count()
     vacancies = max(0, total_capacity - active_residents)
@@ -31,17 +35,16 @@ def index(request):
     remaining_balance = max(Decimal('0.00'), expected_charges - amount_collected)
 
     today = timezone.localdate()
-    due_soon_threshold = today + timedelta(days=7)
-
     charges = Charge.objects.all()
     paid_count = pending_count = due_soon_count = overdue_count = 0
 
     for charge in charges:
-        if charge.status == 'PAID' or charge.pending_amount <= Decimal('0.00'):
+        sc = classify_charge(charge, today)['status_code']
+        if sc == 'PAID':
             paid_count += 1
-        elif charge.due_date < today or charge.status == 'OVERDUE':
+        elif sc == 'OVERDUE':
             overdue_count += 1
-        elif today <= charge.due_date <= due_soon_threshold:
+        elif sc == 'DUE_SOON':
             due_soon_count += 1
         else:
             pending_count += 1
@@ -108,6 +111,7 @@ def vacancies_report(request):
 
 
 def expected_charges_report(request):
+    sync_resident_billing_statuses()
     today = timezone.localdate()
     month_filter = request.GET.get('month', '').strip()
     year_filter = request.GET.get('year', '').strip()
@@ -189,7 +193,6 @@ def collected_report(request):
 
     payments_list = list(payments)
 
-    # Safe month & year filtering on DateTimeField
     month_filter_int = None
     if month_filter and month_filter.isdigit():
         month_filter_int = int(month_filter)
@@ -239,6 +242,7 @@ def collected_report(request):
 
 
 def balance_report(request):
+    sync_resident_billing_statuses()
     today = timezone.localdate()
     charges = list(
         Charge.objects.select_related('resident', 'resident__room')
@@ -249,7 +253,7 @@ def balance_report(request):
     charges.sort(key=lambda c: natural_resident_key(c.resident))
 
     total_balance = sum(c.pending_amount for c in charges)
-    overdue_count = sum(1 for c in charges if c.due_date < today or c.status == 'OVERDUE')
+    overdue_count = sum(1 for c in charges if classify_charge(c, today)['status_code'] == 'OVERDUE')
     pending_count = len(charges) - overdue_count
 
     context = {
