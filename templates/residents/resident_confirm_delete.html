@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block breadcrumb %}
+    <a href="{% url 'residents:resident_list' %}">Residents</a> / Delete Resident
+{% endblock %}
+
+{% block content %}
+<section class="delete-confirmation-page" style="padding: 20px;">
+    <div class="card" style="padding: 25px; border: 1px solid #ff4d4f; border-radius: 8px; max-width: 500px; margin: 40px auto; background-color: #1e1e2d; color: #ffffff;">
+        <h3 style="color: #ff4d4f; margin-top: 0;">Confirm Resident Deletion</h3>
+        <p style="font-size: 16px; margin: 20px 0;">
+            Are you sure you want to delete resident <strong>{{ resident.full_name }}</strong>?
+        </p>
+        
+        <form method="post" style="margin-top: 25px; display: flex; gap: 10px;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" style="background-color: #ff4d4f; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                Yes, Delete Resident
+            </button>
+            <a href="{% url 'residents:resident_list' %}" class="btn btn-secondary" style="padding: 10px 20px; text-decoration: none; border-radius: 4px; background-color: #323248; color: #ffffff;">
+                Cancel
+            </a>
+        </form>
+    </div>
+</section>
+{% endblock %}

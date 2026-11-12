@@ -1,66 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}Rooms | Hostel Desk{% endblock %}
-{% block breadcrumb %}Rooms{% endblock %}
+{% block breadcrumb %}
+    <a href="{% url 'rooms:room_list' %}">Rooms</a> / List
+{% endblock %}
 
 {% block content %}
 <section class="rooms-page">
-    <div class="page-heading room-page-heading">
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
-            <p class="eyebrow">ROOM MANAGEMENT</p>
-            <h1>Rooms</h1>
-            <p class="page-subtitle">Room capacity, availability, and listed monthly fees.</p>
+            <p class="eyebrow" style="color: gray; margin: 0; font-size: 12px;">ROOM MANAGEMENT</p>
+            <h2 style="margin: 5px 0 0 0;">Rooms List</h2>
         </div>
-        <a class="primary-action" href="{% url 'rooms:create' %}"><span aria-hidden="true">+</span> Add room</a>
+        <a href="{% url 'rooms:room_create' %}" class="btn btn-primary">+ Add New Room</a>
     </div>
 
-    <div class="room-summary-grid" aria-label="Room summary">
-        <article class="room-summary"><span class="room-summary-label">ROOMS</span><strong>{{ room_count }}</strong><span class="room-summary-note">Listed in this workspace</span></article>
-        <article class="room-summary"><span class="room-summary-label">TOTAL CAPACITY</span><strong>{{ total_capacity }}</strong><span class="room-summary-note">Beds across all rooms</span></article>
-        <article class="room-summary"><span class="room-summary-label">ACTIVE OCCUPANTS</span><strong>{{ active_occupants }}</strong><span class="room-summary-note">Current assignments</span></article>
-        <article class="room-summary room-summary-available"><span class="room-summary-label">AVAILABLE BEDS</span><strong>{{ available_beds }}</strong><span class="room-summary-note">Ready for assignment</span></article>
-    </div>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success" style="background-color: #28a745; color: white; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
-    <div class="room-table-heading">
-        <div><h2>Room inventory</h2><p>Occupancy and vacancies reflect current active assignments.</p></div>
-    </div>
-
-    {% if rooms %}
-    <div class="room-table-wrap">
-        <table class="room-table">
+    <div class="table-responsive">
+        <table class="app-table" style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr>
-                    <th scope="col">Room</th>
-                    <th scope="col">Floor</th>
-                    <th scope="col">Capacity</th>
-                    <th scope="col">Active occupants</th>
-                    <th scope="col">Available beds</th>
-                    <th scope="col">Monthly fee</th>
-                    <th scope="col"><span class="visually-hidden">Actions</span></th>
+                <tr style="border-bottom: 2px solid #ccc; text-align: left;">
+                    <th style="padding: 10px;">Room Number</th>
+                    <th style="padding: 10px;">Floor</th>
+                    <th style="padding: 10px;">Capacity</th>
+                    <th style="padding: 10px;">Monthly Fee</th>
+                    <th style="padding: 10px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for room in rooms %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px;"><strong>Room {{ room.room_number }}</strong></td>
+                    <td style="padding: 10px;">{{ room.floor }}</td>
+                    <td style="padding: 10px;">{{ room.capacity }} Beds</td>
+                    <td style="padding: 10px;">₹{{ room.fee|default:"0" }}</td>
+                    <td style="padding: 10px;">
+                        <a href="{% url 'rooms:room_edit' room.id %}" class="btn btn-sm btn-info">Edit</a>
+                        <a href="{% url 'rooms:room_delete' room.id %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
                 <tr>
-                    <th scope="row"><span class="room-number">{{ room.room_number }}</span>{% if room.notes %}<span class="room-secondary">{{ room.notes|truncatechars:56 }}</span>{% endif %}</th>
-                    <td>{{ room.floor }}</td>
-                    <td>{{ room.capacity }} <span class="room-secondary-inline">beds</span></td>
-                    <td>{{ room.active_occupants }}</td>
-                    <td><span class="availability-value">{{ room.available_beds }}</span></td>
-                    <td>{{ room.monthly_fee|floatformat:2 }}</td>
-                    <td><a class="table-action" href="{% url 'rooms:edit' room.pk %}" aria-label="Edit room {{ room.room_number }}">Edit</a></td>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: gray;">
+                        No rooms created yet. Click <strong>+ Add New Room</strong> to create one!
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    {% else %}
-    <div class="room-empty-state">
-        <span class="module-icon" aria-hidden="true">R</span>
-        <h2>No rooms yet</h2>
-        <p>Add your first room to begin tracking capacity and availability.</p>
-        <a class="primary-action" href="{% url 'rooms:create' %}"><span aria-hidden="true">+</span> Add room</a>
-    </div>
-    {% endif %}
 </section>
 {% endblock %}

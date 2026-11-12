@@ -1,67 +1,102 @@
 {% extends "base.html" %}
 
-{% block title %}Reports | Hostel Desk{% endblock %}
-{% block breadcrumb %}Reports{% endblock %}
+{% block title %}Dashboard | Hostel Desk{% endblock %}
 
 {% block content %}
-<section class="reports-page">
-    <div class="page-heading reports-heading">
-        <div><p class="eyebrow">OPERATIONS</p><h1>Reports</h1><p class="page-subtitle">Filtered totals and operational exports.</p></div>
+<div style="color: #f8fafc;">
+    <!-- Top Header Banner -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+        <div>
+            <p style="font-size: 12px; font-weight: 700; color: #00b4d8; letter-spacing: 1px; margin: 0 0 6px 0;">OVERVIEW</p>
+            <h1 style="font-size: 32px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Good to see you, RK.</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Operations summary for the selected billing month.</p>
+        </div>
+        <div>
+            <a href="{% url 'admin:index' %}" style="color: #38bdf8; text-decoration: none; font-size: 13px; font-weight: 600;">↗ Open admin</a>
+        </div>
     </div>
 
-    <form method="get" class="reports-filter-form">
-        <div class="report-period-controls">
-            <label for="{{ month_form.year.id_for_label }}">Year</label>{{ month_form.year }}
-            <label for="{{ month_form.month.id_for_label }}">Month</label>{{ month_form.month }}
-        </div>
-        <label for="report-search">Search<input id="report-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Name, phone, or room"></label>
-        <label for="report-resident-status">Resident status<select id="report-resident-status" class="form-control" name="resident_status"><option value="">All</option>{% for value, label in resident_status_choices %}<option value="{{ value }}"{% if resident_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-        <label for="report-floor">Room floor<input id="report-floor" class="form-control" type="number" min="0" name="floor" value="{{ floor_text }}"></label>
-        <label for="report-charge-status">Charge status<select id="report-charge-status" class="form-control" name="charge_status"><option value="">All</option>{% for value, label in charge_status_choices %}<option value="{{ value }}"{% if charge_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-        <label for="report-advance-type">Advance type<select id="report-advance-type" class="form-control" name="transaction_type"><option value="">All</option>{% for value, label in advance_type_choices %}<option value="{{ value }}"{% if transaction_type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-        <button class="admin-link" type="submit">Apply filters</button>
-        {% if query or resident_status or floor_text or charge_status or transaction_type %}<a class="filter-reset" href="{% url 'reports:index' %}?year={{ year }}&month={{ month }}">Clear filters</a>{% endif %}
-    </form>
+    <!-- Workspace Summary Title -->
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Workspace summary</h3>
 
-    <section class="report-summary-section">
-        <div class="report-section-heading"><h2>Residents and rooms</h2><span>{{ month|stringformat:"02d" }}/{{ year }}</span></div>
-        <div class="report-summary-grid report-summary-grid-four">
-            <article class="room-summary"><span class="room-summary-label">RESIDENTS</span><strong>{{ resident_count }}</strong></article>
-            <article class="room-summary"><span class="room-summary-label">ROOMS</span><strong>{{ room_count }}</strong></article>
-            <article class="room-summary"><span class="room-summary-label">CAPACITY</span><strong>{{ total_capacity }}</strong></article>
-            <article class="room-summary room-summary-available"><span class="room-summary-label">VACANCIES</span><strong>{{ vacancies }}</strong></article>
+    <!-- 6 Primary Grid Metric Cards -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 35px;">
+        
+        <!-- Active Residents Card -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; position: relative;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; margin: 0 0 15px 0;">ACTIVE RESIDENTS</p>
+            <a href="{% url 'residents:resident_list' %}" style="color: #64748b; text-decoration: none; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                <span>View residents</span>
+                <span>↗</span>
+            </a>
         </div>
-    </section>
 
-    <section class="report-summary-section">
-        <div class="report-section-heading"><h2>Monthly billing</h2><span>{{ charge_count }} charges</span></div>
-        <div class="report-summary-grid report-summary-grid-three">
-            <article class="room-summary"><span class="room-summary-label">EXPECTED</span><strong>{{ expected_charges|floatformat:2 }}</strong></article>
-            <article class="room-summary"><span class="room-summary-label">COLLECTED</span><strong>{{ amount_collected|floatformat:2 }}</strong></article>
-            <article class="room-summary billing-summary-pending"><span class="room-summary-label">REMAINING</span><strong>{{ remaining_balance|floatformat:2 }}</strong></article>
+        <!-- Total Capacity Card -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; margin: 0 0 15px 0;">TOTAL CAPACITY</p>
+            <a href="{% url 'rooms:room_list' %}" style="color: #64748b; text-decoration: none; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                <span>View rooms</span>
+                <span>↗</span>
+            </a>
         </div>
-    </section>
 
-    <section class="report-summary-section">
-        <div class="report-section-heading"><h2>Advance ledger</h2><span>Transactions dated in selected month</span></div>
-        <div class="report-summary-grid report-summary-grid-three">
-            <article class="room-summary"><span class="room-summary-label">DEPOSITS</span><strong>{{ deposit_total|floatformat:2 }}</strong></article>
-            <article class="room-summary"><span class="room-summary-label">APPLIED TO RENT</span><strong>{{ applied_total|floatformat:2 }}</strong></article>
-            <article class="room-summary"><span class="room-summary-label">REFUNDS</span><strong>{{ refund_total|floatformat:2 }}</strong></article>
+        <!-- Vacancies Card -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; margin: 0 0 15px 0;">VACANCIES</p>
+            <a href="{% url 'rooms:room_list' %}" style="color: #64748b; text-decoration: none; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Bed availability</span>
+                <span>↗</span>
+            </a>
         </div>
-    </section>
 
-    <section class="report-exports-section">
-        <div class="report-section-heading"><h2>CSV exports</h2></div>
-        <div class="report-export-list">
-            <a class="report-export-row" href="{% url 'reports:residents_csv' %}?{{ request.GET.urlencode }}"><span><strong>Residents</strong><small>Contact, status, joined date, and current room</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
-            <a class="report-export-row" href="{% url 'reports:rooms_csv' %}?{{ request.GET.urlencode }}"><span><strong>Rooms and occupancy</strong><small>Capacity, active occupants, and available beds</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
-            {% if can_export_finances %}
-            <a class="report-export-row" href="{% url 'reports:charges_csv' %}?{{ request.GET.urlencode }}"><span><strong>Monthly charges</strong><small>Charges and calculated balances for {{ month|stringformat:"02d" }}/{{ year }}</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
-            <a class="report-export-row" href="{% url 'reports:payments_csv' %}?{{ request.GET.urlencode }}"><span><strong>Payments</strong><small>Receipt, mode, amount, and reference for selected month</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
-            <a class="report-export-row" href="{% url 'reports:advances_csv' %}?{{ request.GET.urlencode }}"><span><strong>Advance ledger</strong><small>Deposits, rent applications, refunds, and recorder</small></span><span class="report-export-action">Download CSV <b aria-hidden="true">&#8599;</b></span></a>
-            {% endif %}
+        <!-- Expected Charges Card -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; margin: 0 0 15px 0;">EXPECTED CHARGES</p>
+            <a href="{% url 'billing:charge_list' %}" style="color: #64748b; text-decoration: none; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Billing detail</span>
+                <span>↗</span>
+            </a>
         </div>
-    </section>
-</section>
+
+        <!-- Amount Collected Card -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; margin: 0 0 15px 0;">AMOUNT COLLECTED</p>
+            <a href="{% url 'billing:charge_list' %}" style="color: #64748b; text-decoration: none; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Paid residents</span>
+                <span>↗</span>
+            </a>
+        </div>
+
+        <!-- Remaining Balance Card -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px; margin: 0 0 15px 0;">REMAINING BALANCE</p>
+            <a href="{% url 'billing:charge_list' %}" style="color: #64748b; text-decoration: none; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Due residents</span>
+                <span>↗</span>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Charge Status Section -->
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Charge status</h3>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 15px;">
+            <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Paid</span>
+            <p style="color: #64748b; font-size: 12px; margin: 25px 0 0 0;">residents</p>
+        </div>
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 15px;">
+            <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Pending</span>
+            <p style="color: #64748b; font-size: 12px; margin: 25px 0 0 0;">residents</p>
+        </div>
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 15px;">
+            <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Due soon</span>
+            <p style="color: #64748b; font-size: 12px; margin: 25px 0 0 0;">residents</p>
+        </div>
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 15px;">
+            <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Overdue</span>
+            <p style="color: #64748b; font-size: 12px; margin: 25px 0 0 0;">residents</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
