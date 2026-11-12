@@ -40,7 +40,7 @@
 
             <div style="width: 150px;">
                 <label for="room-filter" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Room</label>
-                <select id="room-filter" class="form-control" name="room">
+                <select id="room-filter" class="form-control" name="room" onchange="this.form.submit()">
                     <option value="">All Rooms</option>
                     {% for rm in all_rooms %}
                     <option value="{{ rm.id }}"{% if room_filter == rm.id|stringformat:"s" %} selected{% endif %}>Room {{ rm.room_number }}</option>
@@ -50,7 +50,7 @@
 
             <div style="width: 140px;">
                 <label for="sort-filter" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Sort Order</label>
-                <select id="sort-filter" class="form-control" name="sort">
+                <select id="sort-filter" class="form-control" name="sort" onchange="this.form.submit()">
                     <option value="room"{% if sort == 'room' or not sort %} selected{% endif %}>Room (1, 2, 3...)</option>
                     <option value="date"{% if sort == 'date' %} selected{% endif %}>Payment Date</option>
                 </select>
@@ -58,20 +58,20 @@
 
             <div style="width: 140px;">
                 <label for="method-filter" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Payment Method</label>
-                <select id="method-filter" class="form-control" name="method">
+                <select id="method-filter" class="form-control" name="method" onchange="this.form.submit()">
                     <option value="">All Methods</option>
                     {% for val, label in method_choices %}
-                    <option value="{{ val }}"{% if method_filter == val %} selected{% endif %}>{{ label }}</option>
+                    <option value="{{ val }}"{% if method_filter|lower == val|lower %} selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div style="width: 130px;">
                 <label for="month-filter" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Month</label>
-                <select id="month-filter" class="form-control" name="month">
+                <select id="month-filter" class="form-control" name="month" onchange="this.form.submit()">
                     <option value="">All months</option>
                     {% for value, label in month_choices %}
-                    <option value="{{ value }}"{% if month_filter == value|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
+                    <option value="{{ value }}"{% if month_filter_int == value or month_filter == value|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -83,9 +83,7 @@
 
             <div style="display: flex; gap: 8px;">
                 <button type="submit" class="btn-theme-primary" style="padding: 10px 16px; font-size: 13px;">Filter</button>
-                {% if query or room_filter or method_filter or month_filter or year_filter %}
-                <a href="{% url 'billing:payment_history' %}" class="btn-theme-secondary" style="padding: 10px 14px; font-size: 13px;">Reset</a>
-                {% endif %}
+                <a href="{% url 'billing:payment_history' %}" class="btn-theme-secondary" style="padding: 10px 14px; font-size: 13px;">Reset / Clear Filters</a>
             </div>
         </form>
     </div>

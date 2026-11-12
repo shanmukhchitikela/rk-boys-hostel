@@ -123,37 +123,74 @@ def charge_list(request):
 def payment_history(request):
     payments = Payment.objects.all().select_related('charge', 'charge__resident', 'charge__resident__room')
 
-    method_filter = request.GET.get('method', '').strip()
+    method_filter = (request.GET.get('method', '') or request.GET.get('payment_method', '')).strip()
     month_filter = request.GET.get('month', '').strip()
     year_filter = request.GET.get('year', '').strip()
     room_filter = request.GET.get('room', '').strip()
     sort = request.GET.get('sort', 'room').strip().lower()
-    query = request.GET.get('q', '').strip()
+    query = (request.GET.get('q', '') or request.GET.get('search', '')).strip()
 
+    # 1. Method filtering (case-insensitive + handling Cash, UPI, Check/Cheque)
     if method_filter:
-        payments = payments.filter(payment_method__iexact=method_filter)
+        m_clean = method_filter.lower()
+        if m_clean in ('check', 'cheque', 'check/cheque'):
+            payments = payments.filter(
+                Q(payment_method__icontains='check') | Q(payment_method__icontains='cheque')
+            )
+        elif m_clean == 'upi':
+            payments = payments.filter(
+                Q(payment_method__iexact='upi') | Q(payment_method__icontains='upi')
+            )
+        elif m_clean == 'cash':
+            payments = payments.filter(
+                Q(payment_method__iexact='cash') | Q(payment_method__icontains='cash')
+            )
+        else:
+            payments = payments.filter(payment_method__iexact=method_filter)
 
-    if month_filter and month_filter.isdigit():
-        payments = payments.filter(payment_date__month=int(month_filter))
-
-    if year_filter and year_filter.isdigit():
-        payments = payments.filter(payment_date__year=int(year_filter))
-
+    # 2. Room filtering
     if room_filter:
         payments = payments.filter(charge__resident__room_id=room_filter)
 
+    # 3. Search query filtering across resident name, phone, room, ref, etc.
     if query:
-        payments = payments.filter(
+        q_filter = (
             Q(charge__resident__full_name__icontains=query) |
             Q(charge__resident__phone__icontains=query) |
             Q(charge__resident__room__room_number__icontains=query) |
             Q(reference__icontains=query) |
             Q(notes__icontains=query) |
-            Q(charge__title__icontains=query)
+            Q(charge__title__icontains=query) |
+            Q(payment_method__icontains=query)
         )
+        digits = re.findall(r'\d+', query)
+        for d in digits:
+            if d.isdigit():
+                q_filter |= Q(id=int(d))
+        payments = payments.filter(q_filter)
 
-    # Sort payments: natural room order (1, 2, 3...) by default or by date
+    # Convert to list and perform robust Python-level date & natural sorting
     payments_list = list(payments)
+
+    # 4. Month filtering (safe against MySQL CONVERT_TZ issues on DateTimeField)
+    month_filter_int = None
+    if month_filter and month_filter.isdigit():
+        month_filter_int = int(month_filter)
+        payments_list = [
+            p for p in payments_list
+            if p.payment_date and p.payment_date.month == month_filter_int
+        ]
+
+    # 5. Year filtering
+    year_filter_int = None
+    if year_filter and year_filter.isdigit():
+        year_filter_int = int(year_filter)
+        payments_list = [
+            p for p in payments_list
+            if p.payment_date and p.payment_date.year == year_filter_int
+        ]
+
+    # 6. Sorting: Natural Room Order (1, 2, 3...) or Payment Date
     if sort == 'date':
         payments_list.sort(key=lambda p: (p.payment_date, p.id), reverse=True)
     else:
@@ -182,6 +219,7 @@ def payment_history(request):
         'total_count': total_count,
         'method_filter': method_filter,
         'month_filter': month_filter,
+        'month_filter_int': month_filter_int,
         'year_filter': year_filter,
         'room_filter': room_filter,
         'sort': sort,

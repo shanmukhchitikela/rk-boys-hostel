@@ -147,28 +147,65 @@ def expected_charges_report(request):
 
 
 def collected_report(request):
-    method_filter = request.GET.get('method', '').strip()
+    method_filter = (request.GET.get('method', '') or request.GET.get('payment_method', '')).strip()
     month_filter = request.GET.get('month', '').strip()
     year_filter = request.GET.get('year', '').strip()
-    query = request.GET.get('q', '').strip()
+    query = (request.GET.get('q', '') or request.GET.get('search', '')).strip()
 
     payments = Payment.objects.select_related('charge', 'charge__resident', 'charge__resident__room').all()
 
     if method_filter:
-        payments = payments.filter(payment_method__iexact=method_filter)
-    if month_filter and month_filter.isdigit():
-        payments = payments.filter(payment_date__month=int(month_filter))
-    if year_filter and year_filter.isdigit():
-        payments = payments.filter(payment_date__year=int(year_filter))
+        m_clean = method_filter.lower()
+        if m_clean in ('check', 'cheque', 'check/cheque'):
+            payments = payments.filter(
+                Q(payment_method__icontains='check') | Q(payment_method__icontains='cheque')
+            )
+        elif m_clean == 'upi':
+            payments = payments.filter(
+                Q(payment_method__iexact='upi') | Q(payment_method__icontains='upi')
+            )
+        elif m_clean == 'cash':
+            payments = payments.filter(
+                Q(payment_method__iexact='cash') | Q(payment_method__icontains='cash')
+            )
+        else:
+            payments = payments.filter(payment_method__iexact=method_filter)
+
     if query:
-        payments = payments.filter(
+        q_filter = (
             Q(charge__resident__full_name__icontains=query) |
             Q(charge__resident__phone__icontains=query) |
             Q(charge__resident__room__room_number__icontains=query) |
-            Q(reference__icontains=query)
+            Q(reference__icontains=query) |
+            Q(notes__icontains=query) |
+            Q(charge__title__icontains=query) |
+            Q(payment_method__icontains=query)
         )
+        digits = re.findall(r'\d+', query)
+        for d in digits:
+            if d.isdigit():
+                q_filter |= Q(id=int(d))
+        payments = payments.filter(q_filter)
 
     payments_list = list(payments)
+
+    # Safe month & year filtering on DateTimeField
+    month_filter_int = None
+    if month_filter and month_filter.isdigit():
+        month_filter_int = int(month_filter)
+        payments_list = [
+            p for p in payments_list
+            if p.payment_date and p.payment_date.month == month_filter_int
+        ]
+
+    year_filter_int = None
+    if year_filter and year_filter.isdigit():
+        year_filter_int = int(year_filter)
+        payments_list = [
+            p for p in payments_list
+            if p.payment_date and p.payment_date.year == year_filter_int
+        ]
+
     payments_list.sort(key=lambda p: natural_resident_key(p.charge.resident if p.charge else None))
 
     total_collected = sum(p.amount_paid for p in payments_list)
@@ -192,6 +229,7 @@ def collected_report(request):
         'payments_count': len(payments_list),
         'method_filter': method_filter,
         'month_filter': month_filter,
+        'month_filter_int': month_filter_int,
         'year_filter': year_filter,
         'query': query,
         'month_choices': month_choices,
