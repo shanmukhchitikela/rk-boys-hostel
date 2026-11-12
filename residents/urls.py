@@ -5,8 +5,11 @@ app_name = 'residents'
 
 urlpatterns = [
     path('', views.resident_list, name='resident_list'),
+    path('list/', views.resident_list, name='list'),
     path('create/', views.resident_create, name='resident_create'),
     path('<int:pk>/', views.resident_detail, name='resident_detail'),
+    path('<int:pk>/profile/', views.resident_detail, name='detail'),
     path('<int:pk>/edit/', views.resident_edit, name='resident_edit'),
+    path('<int:pk>/update/', views.resident_edit, name='edit'),
     path('<int:pk>/delete/', views.resident_delete, name='resident_delete'),
 ]

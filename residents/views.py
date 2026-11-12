@@ -1,31 +1,44 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Resident
+from .forms import ResidentForm
 
-@login_required
 def resident_list(request):
-    residents = Resident.objects.all()
+    residents = Resident.objects.all().select_related('room')
     return render(request, 'residents/resident_list.html', {'residents': residents})
 
-@login_required
 def resident_create(request):
-    # Form submission logic (existing view logic)
-    return render(request, 'residents/resident_form.html')
+    if request.method == 'POST':
+        form = ResidentForm(request.POST, request.FILES)
+        if form.is_valid():
+            resident = form.save()
+            messages.success(request, f"Resident '{resident.full_name}' added successfully!")
+            return redirect('residents:resident_list')
+    else:
+        form = ResidentForm()
+    return render(request, 'residents/resident_form.html', {'form': form, 'is_edit': False})
 
-@login_required
 def resident_detail(request, pk):
-    resident = get_object_or_404(Resident, pk=pk)
+    resident = get_object_or_404(Resident.objects.select_related('room'), pk=pk)
     return render(request, 'residents/resident_detail.html', {'resident': resident})
 
-@login_required
 def resident_edit(request, pk):
     resident = get_object_or_404(Resident, pk=pk)
-    return render(request, 'residents/resident_form.html', {'resident': resident})
+    if request.method == 'POST':
+        form = ResidentForm(request.POST, request.FILES, instance=resident)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Resident '{resident.full_name}' updated successfully!")
+            return redirect('residents:resident_list')
+    else:
+        form = ResidentForm(instance=resident)
+    return render(request, 'residents/resident_form.html', {'form': form, 'resident': resident, 'is_edit': True})
 
-@login_required
 def resident_delete(request, pk):
     resident = get_object_or_404(Resident, pk=pk)
-    if request.method == 'POST' or request.method == 'GET':
+    if request.method == 'POST':
+        name = resident.full_name
         resident.delete()
+        messages.success(request, f"Resident '{name}' deleted successfully!")
         return redirect('residents:resident_list')
     return render(request, 'residents/resident_confirm_delete.html', {'resident': resident})

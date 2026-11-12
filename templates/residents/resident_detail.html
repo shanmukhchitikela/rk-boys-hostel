@@ -1,75 +1,117 @@
 {% extends "base.html" %}
 
 {% block title %}{{ resident.full_name }} | Hostel Desk{% endblock %}
-{% block breadcrumb %}<a href="{% url 'residents:list' %}">Residents</a><span class="breadcrumb-divider">/</span>{{ resident.full_name }}{% endblock %}
 
 {% block content %}
-<section class="resident-detail-page">
-    <div class="page-heading resident-detail-heading">
+<section class="resident-detail-section" style="max-width: 860px;">
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
         <div>
-            <p class="eyebrow">RESIDENT PROFILE</p>
-            <h1>{{ resident.full_name }}</h1>
-            <p class="page-subtitle">Joined {{ resident.joining_date|date:"F j, Y" }} · {{ resident.phone }}</p>
+            <p style="font-size: 11px; font-weight: 700; color: #f59e0b; letter-spacing: 1.5px; margin: 0 0 6px 0;">RESIDENT PROFILE</p>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">{{ resident.full_name }}</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Joined {{ resident.joining_date|date:"F j, Y" }} · {{ resident.phone }}</p>
         </div>
-        <div class="resident-heading-actions">
-            <a class="admin-link" href="{% url 'residents:edit' resident.pk %}">Edit profile</a>
-            {% if resident.status == "active" and not resident.current_assignment %}<a class="primary-action" href="{% url 'residents:assign_room' resident.pk %}">Assign to room</a>{% endif %}
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'residents:resident_edit' resident.id %}" class="btn-theme-primary">Edit Profile</a>
+            <a href="{% url 'residents:resident_delete' resident.id %}" class="btn-theme-danger">Delete</a>
+            <a href="{% url 'residents:resident_list' %}" class="btn-theme-secondary">All Residents</a>
         </div>
     </div>
 
-    <div class="resident-profile-grid">
-        <section class="resident-profile-section">
-            <div class="room-table-heading"><div><h2>Profile details</h2><p>Resident account and agreed charges.</p></div></div>
-            <dl class="resident-detail-list">
-                <div><dt>Status</dt><dd><span class="resident-status resident-status-{{ resident.status }}">{{ resident.get_status_display }}</span></dd></div>
-                <div><dt>Phone</dt><dd>{{ resident.phone }}</dd></div>
-                <div><dt>Emergency contact</dt><dd>{{ resident.emergency_contact|default:"Not provided" }}</dd></div>
-                <div><dt>Joining date</dt><dd>{{ resident.joining_date|date:"F j, Y" }}</dd></div>
-                <div><dt>Agreed monthly fee</dt><dd>{{ resident.agreed_monthly_fee|floatformat:2 }}</dd></div>
-                <div><dt>Current room</dt><dd>{% if resident.room %}{{ resident.room.room_number }}{% else %}<span class="room-secondary-inline">Not assigned</span>{% endif %}</dd></div>
-            </dl>
-            <div class="advance-balance-panel">
-                <div><span class="room-summary-label">AVAILABLE ADVANCE</span><strong>{{ resident.advance_balance|floatformat:2 }}</strong></div>
-                <div class="advance-action-row">
-                    {% if resident.status == "active" %}<a class="admin-link" href="{% url 'residents:advance_deposit' resident.pk %}">Record deposit</a>{% endif %}
-                    {% if can_apply_advance and resident.advance_balance > 0 and resident.status == "active" %}<a class="admin-link" href="{% url 'residents:advance_apply' resident.pk %}">Apply to rent</a>{% endif %}
-                    {% if can_refund_advance and resident.advance_balance > 0 %}<a class="danger-action" href="{% url 'residents:advance_refund' resident.pk %}">Record refund</a>{% endif %}
+    <!-- Profile Details Card -->
+    <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 28px; margin-bottom: 24px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 20px 0; color: #ffffff;">Contact & Identification</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; font-size: 13px;">
+            <div style="padding-bottom: 12px; border-bottom: 1px solid #1e293b;">
+                <div style="color: #94a3b8; font-size: 11px; font-weight: 600; margin-bottom: 4px;">PHONE NUMBER</div>
+                <div style="color: #ffffff; font-weight: 600;">{{ resident.phone }}</div>
+            </div>
+
+            <div style="padding-bottom: 12px; border-bottom: 1px solid #1e293b;">
+                <div style="color: #94a3b8; font-size: 11px; font-weight: 600; margin-bottom: 4px;">ID PROOF NUMBER</div>
+                <div style="color: #ffffff; font-family: monospace; font-size: 14px;">{{ resident.id_proof_number }}</div>
+            </div>
+
+            <div style="padding-bottom: 12px; border-bottom: 1px solid #1e293b;">
+                <div style="color: #94a3b8; font-size: 11px; font-weight: 600; margin-bottom: 4px;">EMAIL ADDRESS</div>
+                <div style="color: #ffffff;">{{ resident.email|default:"Not provided" }}</div>
+            </div>
+
+            <div style="padding-bottom: 12px; border-bottom: 1px solid #1e293b;">
+                <div style="color: #94a3b8; font-size: 11px; font-weight: 600; margin-bottom: 4px;">EMERGENCY CONTACT</div>
+                <div style="color: #ffffff;">{{ resident.emergency_contact|default:"Not provided" }}</div>
+            </div>
+
+            <div style="padding-bottom: 12px; border-bottom: 1px solid #1e293b;">
+                <div style="color: #94a3b8; font-size: 11px; font-weight: 600; margin-bottom: 4px;">JOINING DATE</div>
+                <div style="color: #ffffff;">{{ resident.joining_date|date:"F j, Y" }}</div>
+            </div>
+
+            <div style="padding-bottom: 12px; border-bottom: 1px solid #1e293b;">
+                <div style="color: #94a3b8; font-size: 11px; font-weight: 600; margin-bottom: 4px;">ROOM ALLOCATION</div>
+                <div>
+                    {% if resident.room %}
+                    <a href="{% url 'rooms:room_detail' resident.room.id %}" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); text-decoration: none;">
+                        Room {{ resident.room.room_number }} (Floor {{ resident.room.floor }}) ↗
+                    </a>
+                    {% else %}
+                    <span style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #334155; color: #94a3b8;">
+                        Unassigned
+                    </span>
+                    {% endif %}
                 </div>
             </div>
-            {% if resident.status == "active" %}
-            <form method="post" action="{% url 'residents:exit' resident.pk %}" class="resident-exit-form" onsubmit="return confirm('Mark this resident as exited? Their room assignment will be closed and retained in history.');">
-                {% csrf_token %}
-                <button class="danger-action" type="submit">Mark as exited</button>
-            </form>
-            {% endif %}
-        </section>
+        </div>
 
-        <section class="resident-profile-section resident-history-section">
-            <div class="room-table-heading"><div><h2>Room assignment history</h2><p>Past assignments remain available after exit.</p></div></div>
-            {% if resident.room_assignments.all %}
-            <div class="room-table-wrap">
-                <table class="room-table">
-                    <thead><tr><th scope="col">Room</th><th scope="col">Start date</th><th scope="col">End date</th></tr></thead>
-                    <tbody>
-                        {% for assignment in resident.room_assignments.all %}
-                        <tr><th scope="row"><span class="room-number">{{ assignment.room.room_number }}</span></th><td>{{ assignment.start_date|date:"M j, Y" }}</td><td>{% if assignment.end_date %}{{ assignment.end_date|date:"M j, Y" }}{% else %}<span class="availability-value">Current</span>{% endif %}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="room-empty-state resident-history-empty"><h2>No assignments yet</h2><p>Room stays will appear here after assignment.</p></div>
-            {% endif %}
-        </section>
+        {% if resident.id_proof_image %}
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #1e293b;">
+            <div style="color: #94a3b8; font-size: 11px; font-weight: 600; margin-bottom: 8px;">ID PROOF DOCUMENT</div>
+            <a href="{{ resident.id_proof_image.url }}" target="_blank" style="color: #38bdf8; font-size: 13px; text-decoration: underline;">
+                View Uploaded ID Proof Document ↗
+            </a>
+        </div>
+        {% endif %}
     </div>
 
-    <section class="resident-profile-section advance-history-section">
-        <div class="room-table-heading"><div><h2>Advance ledger</h2><p>Deposits, applications to rent, and refunds. Entries are retained as history.</p></div></div>
-        {% if resident.advance_transactions.all %}
-        <div class="room-table-wrap"><table class="room-table advance-table"><thead><tr><th scope="col">Date</th><th scope="col">Transaction</th><th scope="col">Amount</th><th scope="col">Reference</th><th scope="col">Rent charge</th><th scope="col">Recorded by</th></tr></thead><tbody>
-            {% for entry in resident.advance_transactions.all %}<tr><td>{{ entry.date|date:"M j, Y" }}</td><td>{{ entry.get_transaction_type_display }}</td><td>{{ entry.amount|floatformat:2 }}</td><td>{{ entry.reference|default:"—" }}</td><td>{% if entry.charge %}<a href="{% url 'billing:charge_detail' entry.charge_id %}">{{ entry.charge.period }}</a>{% else %}—{% endif %}</td><td>{% if entry.recorded_by %}{{ entry.recorded_by.get_username }}{% else %}Legacy opening balance{% endif %}</td></tr>{% endfor %}
-        </tbody></table></div>
-        {% else %}<div class="room-empty-state resident-history-empty"><h2>No advance transactions</h2><p>Ledger history will appear here when an advance is recorded.</p></div>{% endif %}
-    </section>
+    <!-- Charges for this resident -->
+    <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px 0; color: #ffffff;">Billing & Charges</h3>
+    <div class="dark-table-card">
+        <table class="dark-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Due Date</th>
+                    <th>Amount (₹)</th>
+                    <th>Paid (₹)</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for charge in resident.charges.all %}
+                <tr>
+                    <td><strong style="color: #ffffff;">{{ charge.title }}</strong></td>
+                    <td>{{ charge.due_date|date:"M j, Y" }}</td>
+                    <td>₹{{ charge.amount|floatformat:2 }}</td>
+                    <td style="color: #10b981;">₹{{ charge.paid_amount|floatformat:2 }}</td>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; {% if charge.status == 'PAID' %}background: rgba(16, 185, 129, 0.15); color: #34d399;{% else %}background: rgba(245, 158, 11, 0.15); color: #fbbf24;{% endif %}">
+                            {{ charge.status_label }}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'billing:charge_detail' charge.pk %}" style="padding: 4px 10px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 4px; color: #38bdf8; font-size: 11px; text-decoration: none;">Details</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px; color: #64748b;">
+                        No charges recorded for this resident.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 {% endblock %}

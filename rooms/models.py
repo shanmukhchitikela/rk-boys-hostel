@@ -21,8 +21,14 @@ class Room(models.Model):
         return f"Room {self.room_number} (Floor {self.floor})"
 
     @property
+    def fee(self):
+        return self.monthly_fee
+
+    @property
     def active_occupants(self):
-        return self.residents.filter(is_active=True).count()
+        if hasattr(self, 'residents'):
+            return self.residents.count()
+        return self.resident_set.count()
 
     @property
     def available_beds(self):

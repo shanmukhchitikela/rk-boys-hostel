@@ -1,53 +1,70 @@
 {% extends "base.html" %}
 
-{% block breadcrumb %}
-    <a href="{% url 'residents:resident_list' %}">Residents</a> / List
-{% endblock %}
+{% block title %}Residents Management | Hostel Desk{% endblock %}
 
 {% block content %}
 <section class="residents-page">
-    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>Residents Management</h2>
-        <a href="{% url 'residents:resident_create' %}" class="btn btn-primary">+ Add New Resident</a>
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <p style="font-size: 11px; font-weight: 700; color: #f59e0b; letter-spacing: 1.5px; margin: 0 0 6px 0;">RESIDENT DIRECTORY</p>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Hostel Residents</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Resident profiles, room assignments, and contact details.</p>
+        </div>
+        <a href="{% url 'residents:resident_create' %}" class="btn-theme-primary">
+            <span>+</span>
+            <span>Add New Resident</span>
+        </a>
     </div>
 
-    <div class="table-responsive">
-        <table class="app-table" style="width: 100%; border-collapse: collapse;">
+    <!-- Table Card -->
+    <div class="dark-table-card">
+        <table class="dark-table">
             <thead>
-                <tr style="border-bottom: 2px solid #ccc; text-align: left;">
-                    <th style="padding: 10px;">Name</th>
-                    <th style="padding: 10px;">Phone</th>
-                    <th style="padding: 10px;">ID Proof</th>
-                    <th style="padding: 10px;">Assigned Room</th>
-                    <th style="padding: 10px;">Joining Date</th>
-                    <th style="padding: 10px;">Actions</th>
+                <tr>
+                    <th>Resident Name</th>
+                    <th>Phone</th>
+                    <th>ID Proof</th>
+                    <th>Assigned Room</th>
+                    <th>Joining Date</th>
+                    <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in residents %}
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 10px;">
-                        <strong>{{ r.full_name }}</strong>
-                    </td>
-                    <td style="padding: 10px;">{{ r.phone|default:"-" }}</td>
-                    <td style="padding: 10px;">{{ r.id_proof_number|default:"-" }}</td>
-                    <td style="padding: 10px;">
-                        {% if r.room %}
-                            Room {{ r.room.room_number }} (Floor {{ r.room.floor }})
-                        {% else %}
-                            <span style="color: gray;">Unassigned</span>
+                <tr>
+                    <td>
+                        <strong style="color: #ffffff; font-size: 14px;">{{ r.full_name }}</strong>
+                        {% if r.email %}
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">{{ r.email }}</div>
                         {% endif %}
                     </td>
-                    <td style="padding: 10px;">{{ r.joining_date|default:"-" }}</td>
-                    <td style="padding: 10px;">
-                        <a href="{% url 'residents:resident_edit' r.id %}" class="btn btn-sm btn-info">Edit</a>
-                        <a href="{% url 'residents:resident_delete' r.id %}" class="btn btn-sm btn-danger">Delete</a>
+                    <td>{{ r.phone|default:"-" }}</td>
+                    <td><span style="font-family: monospace; color: #cbd5e1;">{{ r.id_proof_number|default:"-" }}</span></td>
+                    <td>
+                        {% if r.room %}
+                            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                                Room {{ r.room.room_number }} (Floor {{ r.room.floor }})
+                            </span>
+                        {% else %}
+                            <span style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #334155; color: #94a3b8;">
+                                Unassigned
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.joining_date|date:"M j, Y"|default:r.joining_date }}</td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 8px; justify-content: flex-end;">
+                            <a href="{% url 'residents:resident_edit' r.id %}" style="padding: 5px 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 5px; color: #38bdf8; text-decoration: none; font-size: 12px; font-weight: 600;">Edit</a>
+                            <a href="{% url 'residents:resident_delete' r.id %}" style="padding: 5px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 5px; color: #ef4444; text-decoration: none; font-size: 12px; font-weight: 600;">Delete</a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 20px; color: gray;">
-                        No residents found. Click <strong>+ Add New Resident</strong> to onboard one!
+                    <td colspan="6" style="text-align: center; padding: 48px 20px; color: #64748b;">
+                        <div style="font-size: 15px; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">No residents registered yet</div>
+                        <p style="margin: 0 0 16px 0; font-size: 13px;">Onboard residents and allocate hostel beds.</p>
+                        <a href="{% url 'residents:resident_create' %}" class="btn-theme-primary">+ Add New Resident</a>
                     </td>
                 </tr>
                 {% endfor %}

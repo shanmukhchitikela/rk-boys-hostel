@@ -1,24 +1,78 @@
 {% extends "base.html" %}
 
-{% block title %}Paid residents | Hostel Desk{% endblock %}
-{% block breadcrumb %}<a href="{% url 'billing:charge_list' %}">Billing</a><span class="breadcrumb-divider">/</span>Paid residents{% endblock %}
+{% block title %}Paid Residents | Hostel Desk{% endblock %}
 
 {% block content %}
 <section class="billing-page">
-    <div class="page-heading billing-page-heading">
-        <div><p class="eyebrow">COLLECTIONS</p><h1>Paid residents</h1><p class="page-subtitle">Charges settled for {{ month|stringformat:"02d" }}/{{ year }}.</p></div>
-        <a class="admin-link" href="{% url 'billing:charge_list' %}"><span aria-hidden="true">&larr;</span> All billing</a>
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <p style="font-size: 11px; font-weight: 700; color: #10b981; letter-spacing: 1.5px; margin: 0 0 6px 0;">COLLECTIONS REPORT</p>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Paid Residents</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Charges fully settled for {{ month|stringformat:"02d" }}/{{ year }}.</p>
+        </div>
+        <a href="{% url 'billing:charge_list' %}" class="btn-theme-secondary">← All Billing</a>
     </div>
-    <form method="get" class="billing-filter-form" role="search">
-        <div class="billing-month-controls"><label for="{{ month_form.year.id_for_label }}">Year</label>{{ month_form.year }}<label for="{{ month_form.month.id_for_label }}">Month</label>{{ month_form.month }}</div>
-        <label class="billing-search-field" for="paid-search">Search residents<input id="paid-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Name or phone"></label>
-        <button class="admin-link" type="submit">Filter</button>
-    </form>
-    {% if page_obj.object_list %}
-    <div class="room-table-wrap"><table class="room-table billing-table"><thead><tr><th scope="col">Resident</th><th scope="col">Period</th><th scope="col">Charge</th><th scope="col">Paid</th><th scope="col">Due date</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead><tbody>
-        {% for charge in page_obj %}<tr><th scope="row"><span class="room-number">{{ charge.resident.full_name }}</span></th><td>{{ charge.period }}</td><td>{{ charge.amount|floatformat:2 }}</td><td>{{ charge.paid_amount|floatformat:2 }}</td><td>{{ charge.due_date|date:"M j, Y" }}</td><td><a class="table-action" href="{% url 'billing:charge_detail' charge.pk %}">Receipt history</a></td></tr>{% endfor %}
-    </tbody></table></div>
-    {% else %}<div class="room-empty-state"><h2>No paid residents for this month</h2><p>Try another month or check the charge list.</p></div>{% endif %}
-    {% if page_obj.paginator.num_pages > 1 %}<nav class="pagination" aria-label="Paid resident pages">{% if page_obj.has_previous %}<a class="admin-link" href="?year={{ year }}&month={{ month }}&q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="admin-link" href="?year={{ year }}&month={{ month }}&q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+
+    <!-- Filter -->
+    <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+        <form method="get" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="width: 120px;">
+                <label for="paid-year" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Year</label>
+                <input id="paid-year" class="form-control" type="number" name="year" value="{{ year }}">
+            </div>
+            <div style="width: 120px;">
+                <label for="paid-month" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Month</label>
+                <input id="paid-month" class="form-control" type="number" min="1" max="12" name="month" value="{{ month }}">
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label for="paid-search" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Search</label>
+                <input id="paid-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Resident name or phone">
+            </div>
+            <button type="submit" class="btn-theme-primary" style="padding: 10px 16px;">Filter</button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="dark-table-card">
+        <table class="dark-table">
+            <thead>
+                <tr>
+                    <th>Resident</th>
+                    <th>Charge Title</th>
+                    <th>Amount (₹)</th>
+                    <th>Paid (₹)</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for charge in page_obj %}
+                <tr>
+                    <td>
+                        <strong style="color: #ffffff;">{{ charge.resident.full_name }}</strong>
+                        <div style="font-size: 11px; color: #64748b;">{{ charge.resident.phone }}</div>
+                    </td>
+                    <td>{{ charge.title }}</td>
+                    <td>₹{{ charge.amount|floatformat:2 }}</td>
+                    <td style="color: #10b981; font-weight: 600;">₹{{ charge.paid_amount|floatformat:2 }}</td>
+                    <td>{{ charge.due_date|date:"M j, Y" }}</td>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">Paid</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'billing:charge_detail' charge.pk %}" style="padding: 4px 10px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 4px; color: #38bdf8; font-size: 11px; text-decoration: none;">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">
+                        No paid residents recorded for this period.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 {% endblock %}

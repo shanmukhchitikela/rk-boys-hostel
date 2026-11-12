@@ -9,74 +9,268 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background-color: #0b1329; color: #f8fafc; font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+        .app-shell { display: flex; min-height: 100vh; width: 100%; position: relative; }
+        
+        /* Fixed Sidebar */
+        aside.sidebar { 
+            position: fixed !important; 
+            top: 0 !important; 
+            bottom: 0 !important; 
+            left: 0 !important; 
+            width: 250px !important; 
+            min-width: 250px !important; 
+            height: 100vh !important; 
+            background-color: #0d1730 !important; 
+            border-right: 1px solid #1e293b !important; 
+            display: flex !important; 
+            flex-direction: column !important; 
+            justify-content: space-between !important; 
+            padding: 24px 18px 20px 18px !important; 
+            box-sizing: border-box !important; 
+            z-index: 1000 !important; 
+            overflow-y: auto !important; 
+        }
+
+        /* Right Content Area: Perfectly offset without overlapping */
+        .workspace-main { 
+            margin-left: 250px !important; 
+            width: calc(100% - 250px) !important; 
+            min-height: 100vh !important; 
+            box-sizing: border-box !important; 
+            background-color: #0b1329 !important; 
+            display: flex !important; 
+            flex-direction: column !important; 
+        }
+
+        main.content-area { 
+            padding: 32px 40px !important; 
+            box-sizing: border-box !important; 
+            width: 100% !important; 
+            max-width: 1300px !important; 
+            flex: 1 !important; 
+        }
+
+        /* Nav link styles */
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 12px;
+            text-decoration: none;
+            color: #94a3b8;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid transparent;
+            transition: all 160ms ease;
+        }
+        .sidebar-nav-link:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: #f8fafc;
+        }
+        .sidebar-nav-link.active {
+            background: rgba(0, 180, 216, 0.12);
+            color: #38bdf8;
+            font-weight: 600;
+            border-color: rgba(0, 180, 216, 0.25);
+        }
+
+        /* Generic Dark Theme Form Controls */
+        .form-control, select.form-control, input.form-control, textarea.form-control {
+            background-color: #0d1726 !important;
+            color: #ffffff !important;
+            border: 1px solid #1e293b !important;
+            border-radius: 6px !important;
+            padding: 10px 12px !important;
+            font-size: 13px !important;
+            font-family: inherit !important;
+            outline: none !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .form-control:focus, select.form-control:focus, input.form-control:focus, textarea.form-control:focus {
+            border-color: #00b4d8 !important;
+            box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.2) !important;
+        }
+        .form-control::placeholder {
+            color: #64748b !important;
+        }
+
+        /* Buttons */
+        .btn-theme-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #00b4d8;
+            color: #0b1329;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 150ms ease;
+        }
+        .btn-theme-primary:hover {
+            background-color: #38bdf8;
+            color: #0b1329;
+        }
+        .btn-theme-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #1e293b;
+            color: #cbd5e1;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 150ms ease;
+        }
+        .btn-theme-secondary:hover {
+            background-color: #334155;
+            color: #ffffff;
+        }
+        .btn-theme-danger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            font-weight: 600;
+            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 150ms ease;
+        }
+        .btn-theme-danger:hover {
+            background-color: #ef4444;
+            color: #ffffff;
+        }
+
+        /* Common table styles */
+        .dark-table-card {
+            background: #111c38;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .dark-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+        .dark-table th {
+            background: #0e172e;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            padding: 14px 18px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .dark-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid #18233c;
+            color: #e2e8f0;
+            vertical-align: middle;
+        }
+        .dark-table tr:last-child td {
+            border-bottom: none;
+        }
+        .dark-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+    </style>
     <script src="{% static 'js/app.js' %}" defer></script>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0b1329; color: #f8fafc; font-family: 'DM Sans', sans-serif;">
-    <div class="app-shell" style="display: flex; min-height: 100vh; width: 100vw; overflow-x: hidden;">
+<body>
+    <div class="app-shell">
         
         <!-- Left Sidebar Navigation -->
-        <aside class="sidebar" id="sidebar" style="width: 250px; min-width: 250px; background-color: #0d1730; border-right: 1px solid #1e293b; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; position: fixed; height: 100vh; top: 0; left: 0; z-index: 100;">
+        <aside class="sidebar" id="sidebar">
             <div>
-                <div class="sidebar-header" style="margin-bottom: 25px;">
-                    <a href="{% url 'reports:index' %}" class="brand-link" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff;">
-                        <span class="brand-symbol" style="background: #00b4d8; color: white; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: bold; font-size: 16px;">H</span>
-                        <span class="brand-name" style="font-weight: 700; font-size: 18px; font-family: 'Manrope', sans-serif;">hosteldesk</span>
+                <div class="sidebar-header" style="margin-bottom: 28px;">
+                    <a href="{% url 'reports:index' %}" class="brand-link" style="display: flex; align-items: center; gap: 11px; text-decoration: none; color: #fff;">
+                        <span class="brand-symbol" style="background: #00b4d8; color: #0b1329; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 800; font-size: 17px; font-family: 'Manrope', sans-serif;">H</span>
+                        <span class="brand-name" style="font-weight: 800; font-size: 18px; font-family: 'Manrope', sans-serif; letter-spacing: -0.3px;">hosteldesk</span>
                     </a>
                 </div>
                 
-                <p class="nav-caption" style="font-size: 11px; font-weight: 700; color: #475569; letter-spacing: 1px; margin-bottom: 12px;">WORKSPACE</p>
+                <p class="nav-caption" style="font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 1.2px; margin: 0 0 10px 10px;">WORKSPACE</p>
                 
                 <nav class="primary-nav" style="display: flex; flex-direction: column; gap: 4px;">
-                    <a class="nav-link" href="{% url 'reports:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">D</span>
+                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'reports' or request.resolver_match.app_name == 'reports_page' %}active{% endif %}" href="{% url 'reports:index' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #00b4d8;">D</span>
                         <span>Dashboard</span>
                     </a>
-                    <a class="nav-link" href="{% url 'rooms:room_list' %}" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">R</span>
+                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'rooms' %}active{% endif %}" href="{% url 'rooms:room_list' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #10b981;">R</span>
                         <span>Rooms</span>
                     </a>
-                    <a class="nav-link" href="{% url 'residents:resident_list' %}" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">P</span>
+                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'residents' %}active{% endif %}" href="{% url 'residents:resident_list' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #f59e0b;">P</span>
                         <span>Residents</span>
                     </a>
-                    <a class="nav-link" href="{% url 'billing:charge_list' %}" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">B</span>
+                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}" href="{% url 'billing:charge_list' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #38bdf8;">B</span>
                         <span>Billing</span>
                     </a>
-                    <a class="nav-link" href="{% url 'reports:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">T</span>
+                    <a class="sidebar-nav-link" href="{% url 'reports:index' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #a855f7;">T</span>
                         <span>Reports</span>
                     </a>
-                    <a class="nav-link" href="#" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">S</span>
-                        <span>Settings</span>
-                    </a>
-                    <a class="nav-link" href="#" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">L</span>
-                        <span>Audit log</span>
-                    </a>
-                    <a class="nav-link" href="{% url 'admin:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-decoration: none; color: #94a3b8; border-radius: 6px; font-size: 14px;">
-                        <span style="font-weight: bold; width: 15px;">A</span>
+                    <a class="sidebar-nav-link" href="{% url 'admin:index' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #ec4899;">A</span>
                         <span>Administration</span>
                     </a>
                 </nav>
             </div>
 
-            <div class="sidebar-footer" style="border-top: 1px solid #1e293b; padding-top: 15px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 12px; color: #10b981;">
-                    <span style="height: 8px; width: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+            <div class="sidebar-footer" style="border-top: 1px solid #1e293b; padding-top: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 11px; color: #10b981; font-weight: 500;">
+                    <span style="height: 7px; width: 7px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);"></span>
                     <span>Workspace ready</span>
                 </div>
-                <div class="user-card" style="display: flex; align-items: center; gap: 10px;">
-                    <span class="user-avatar" style="background: #1e293b; color: #38bdf8; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">R</span>
-                    <span class="user-name" style="font-weight: 600; font-size: 13px; color: #cbd5e1;">RK</span>
+                <div class="user-card" style="display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.02);">
+                    <span class="user-avatar" style="background: #1e293b; color: #38bdf8; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">RK</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="user-name" style="font-weight: 600; font-size: 13px; color: #e2e8f0;">RK</span>
+                        <span style="font-size: 10px; color: #64748b;">Hostel Manager</span>
+                    </div>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content Area -->
-        <div class="workspace-main" style="margin-left: 250px; width: calc(100% - 250px); min-height: 100vh; box-sizing: border-box; background-color: #0b1329;">
-            <main class="content-area" style="padding: 30px; box-sizing: border-box; width: 100%;">
+        <div class="workspace-main">
+            <main class="content-area">
+                <!-- Flash messages -->
+                {% if messages %}
+                    <div style="margin-bottom: 24px; display: grid; gap: 10px;">
+                        {% for message in messages %}
+                            <div style="padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: space-between; {% if message.tags == 'error' %}background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;{% elif message.tags == 'success' %}background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7;{% else %}background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #7dd3fc;{% endif %}">
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 {% block content %}
                 {% endblock %}
             </main>

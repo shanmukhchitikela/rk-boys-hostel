@@ -1,4 +1,103 @@
-<td style="padding: 10px; display: flex; gap: 8px;">
-    <a href="{% url 'residents:resident_edit' r.id %}" class="btn btn-sm btn-info" style="padding: 4px 10px; background: #17a2b8; color: white; border-radius: 4px; text-decoration: none;">Edit</a>
-    <a href="{% url 'residents:resident_delete' r.id %}" onclick="return confirm('Are you sure you want to delete this resident?');" class="btn btn-sm btn-danger" style="padding: 4px 10px; background: #dc3545; color: white; border-radius: 4px; text-decoration: none;">Delete</a>
-</td>
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Resident {{ resident.full_name }}{% else %}Add Resident{% endif %} | Hostel Desk{% endblock %}
+
+{% block content %}
+<section class="resident-form-section" style="max-width: 780px;">
+    <div class="page-heading" style="margin-bottom: 24px;">
+        <p style="font-size: 11px; font-weight: 700; color: #f59e0b; letter-spacing: 1.5px; margin: 0 0 6px 0;">RESIDENT PROFILE</p>
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">
+            {% if is_edit %}Edit Resident: {{ resident.full_name }}{% else %}Register New Resident{% endif %}
+        </h1>
+        <p style="color: #94a3b8; margin: 0; font-size: 14px;">Record contact details, identity verification, joining date, and room allocation.</p>
+    </div>
+
+    <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 28px;">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; color: #fca5a5; font-size: 13px; margin-bottom: 20px;">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 20px;">
+                <div>
+                    <label for="{{ form.full_name.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Full Name *</label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.full_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.phone.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Phone Number *</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.phone.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.id_proof_number.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">ID Proof / Aadhaar Number *</label>
+                    {{ form.id_proof_number }}
+                    {% if form.id_proof_number.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.id_proof_number.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.email.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Email Address (Optional)</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.emergency_contact.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Emergency Contact</label>
+                    {{ form.emergency_contact }}
+                    {% if form.emergency_contact.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.emergency_contact.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.joining_date.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Joining Date *</label>
+                    {{ form.joining_date }}
+                    {% if form.joining_date.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.joining_date.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <label for="{{ form.room.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Room Allocation</label>
+                    {{ form.room }}
+                    <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">Select a room with available bed capacity.</span>
+                    {% if form.room.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.room.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <label for="{{ form.id_proof_image.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">ID Proof Document / Image (Optional)</label>
+                    {{ form.id_proof_image }}
+                    {% if form.id_proof_image.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.id_proof_image.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; border-top: 1px solid #1e293b; padding-top: 20px;">
+                <button type="submit" class="btn-theme-primary">
+                    {% if is_edit %}Save Changes{% else %}Create Resident Profile{% endif %}
+                </button>
+                <a href="{% url 'residents:resident_list' %}" class="btn-theme-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

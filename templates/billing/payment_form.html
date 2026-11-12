@@ -1,24 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}Record payment | Hostel Desk{% endblock %}
-{% block breadcrumb %}<a href="{% url 'billing:charge_list' %}">Billing</a><span class="breadcrumb-divider">/</span><a href="{% url 'billing:charge_detail' charge.pk %}">{{ charge.period }}</a><span class="breadcrumb-divider">/</span>Record payment{% endblock %}
+{% block title %}Record Payment · {{ charge.resident.full_name }} | Hostel Desk{% endblock %}
 
 {% block content %}
-<section class="room-form-page">
-    <div class="page-heading room-form-heading">
-        <div><p class="eyebrow">PAYMENT RECORD</p><h1>Record a payment</h1><p class="page-subtitle">{{ charge.resident.full_name }} · {{ charge.period }} · Balance {{ charge.pending_amount|floatformat:2 }}</p></div>
-        <a class="admin-link" href="{% url 'billing:charge_detail' charge.pk %}"><span aria-hidden="true">&larr;</span> Back to charge</a>
+<section class="payment-form-section" style="max-width: 600px;">
+    <div class="page-heading" style="margin-bottom: 24px;">
+        <p style="font-size: 11px; font-weight: 700; color: #10b981; letter-spacing: 1.5px; margin: 0 0 6px 0;">PAYMENT COLLECTION</p>
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Record Payment</h1>
+        <p style="color: #94a3b8; margin: 0; font-size: 14px;">{{ charge.resident.full_name }} · {{ charge.period }} · Balance: ₹{{ charge.pending_amount|floatformat:2 }}</p>
     </div>
-    <form method="post" class="room-form" novalidate>
-        {% csrf_token %}
-        {{ form.submission_key }}
-        {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-        <div class="room-form-grid">
-            {% for field in form.visible_fields %}
-            <div class="room-form-field{% if field.name == 'notes' %} room-form-field-wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<span class="field-error" role="alert">{{ error }}</span>{% endfor %}</div>
-            {% endfor %}
-        </div>
-        <div class="room-form-actions"><a class="admin-link" href="{% url 'billing:charge_detail' charge.pk %}">Cancel</a><button class="primary-action" type="submit">Save payment</button></div>
-    </form>
+
+    <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 28px;">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; color: #fca5a5; font-size: 13px; margin-bottom: 20px;">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div style="display: grid; gap: 18px; margin-bottom: 24px;">
+                <div>
+                    <label for="{{ form.amount_paid.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Amount Paid (₹) *</label>
+                    {{ form.amount_paid }}
+                    {% if form.amount_paid.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.amount_paid.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.payment_method.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Payment Method *</label>
+                    {{ form.payment_method }}
+                    {% if form.payment_method.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.payment_method.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; border-top: 1px solid #1e293b; padding-top: 20px;">
+                <button type="submit" class="btn-theme-primary">
+                    Save Payment
+                </button>
+                <a href="{% url 'billing:charge_detail' charge.pk %}" class="btn-theme-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 </section>
 {% endblock %}

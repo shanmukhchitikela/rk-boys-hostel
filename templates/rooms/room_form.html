@@ -1,28 +1,78 @@
 {% extends "base.html" %}
 
-{% block title %}Room Form - Hostel Desk{% endblock %}
+{% block title %}{% if room %}Edit Room {{ room.room_number }}{% else %}Add Room{% endif %} | Hostel Desk{% endblock %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h2>{% if room %}Edit Room{% else %}Add New Room{% endif %}</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="room_number">Room Number</label>
-            <input type="text" id="room_number" name="room_number" value="{% if room %}{{ room.room_number }}{% endif %}" required class="form-control" style="width: 100%; padding: 8px; margin-top: 5px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="floor">Floor</label>
-            <input type="number" id="floor" name="floor" value="{% if room %}{{ room.floor }}{% else %}1{% endif %}" required class="form-control" style="width: 100%; padding: 8px; margin-top: 5px;">
-        </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="capacity">Capacity (Beds)</label>
-            <input type="number" id="capacity" name="capacity" value="{% if room %}{{ room.capacity }}{% else %}2{% endif %}" required class="form-control" style="width: 100%; padding: 8px; margin-top: 5px;">
-        </div>
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Room</button>
-            <a href="{% url 'rooms:room_list' %}" class="btn btn-secondary" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; text-decoration: none;">Cancel</a>
-        </div>
-    </form>
-</div>
+<section class="room-form-section" style="max-width: 720px;">
+    <div class="page-heading" style="margin-bottom: 24px;">
+        <p style="font-size: 11px; font-weight: 700; color: #10b981; letter-spacing: 1.5px; margin: 0 0 6px 0;">ROOM SETUP</p>
+        <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">
+            {% if room %}Edit Room {{ room.room_number }}{% else %}Add a New Room{% endif %}
+        </h1>
+        <p style="color: #94a3b8; margin: 0; font-size: 14px;">Set room number, floor assignment, bed capacity, and monthly rent.</p>
+    </div>
+
+    <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 28px;">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; color: #fca5a5; font-size: 13px; margin-bottom: 20px;">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 20px;">
+                <div>
+                    <label for="{{ form.room_number.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Room Number *</label>
+                    {{ form.room_number }}
+                    {% if form.room_number.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.room_number.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.floor.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Floor *</label>
+                    {{ form.floor }}
+                    {% if form.floor.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.floor.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.capacity.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Capacity (Beds) *</label>
+                    {{ form.capacity }}
+                    {% if form.capacity.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.capacity.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.monthly_fee.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Monthly Fee per Bed (₹) *</label>
+                    {{ form.monthly_fee }}
+                    {% if form.monthly_fee.errors %}
+                        <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.monthly_fee.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label for="{{ form.notes.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">Notes (Optional)</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ form.notes.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; border-top: 1px solid #1e293b; padding-top: 20px;">
+                <button type="submit" class="btn-theme-primary">
+                    {% if room %}Update Room{% else %}Save Room{% endif %}
+                </button>
+                <a href="{% url 'rooms:room_list' %}" class="btn-theme-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
 {% endblock %}

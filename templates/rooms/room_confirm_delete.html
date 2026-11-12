@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Room {{ room.room_number }} | Hostel Desk{% endblock %}
+
+{% block content %}
+<section style="max-width: 540px; margin: 40px auto;">
+    <div style="background: #111c38; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; padding: 30px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 20px; font-weight: bold;">
+                !
+            </div>
+            <div>
+                <h2 style="font-size: 20px; font-weight: 700; margin: 0; color: #f8fafc;">Confirm Room Deletion</h2>
+                <p style="font-size: 13px; color: #94a3b8; margin: 2px 0 0 0;">This action cannot be undone.</p>
+            </div>
+        </div>
+
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6; margin: 16px 0 20px 0;">
+            Are you sure you want to delete <strong style="color: #ffffff;">Room {{ room.room_number }}</strong> (Floor {{ room.floor }}, {{ room.capacity }} beds)?
+        </p>
+
+        {% if room.active_occupants > 0 %}
+        <div style="padding: 12px 14px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; font-size: 12px; color: #fca5a5; margin-bottom: 20px;">
+            ⚠️ <strong>Warning:</strong> This room currently has <strong>{{ room.active_occupants }}</strong> assigned resident{{ room.active_occupants|pluralize }}. Deleting it will mark their room allocation as unassigned.
+        </div>
+        {% endif %}
+
+        <form method="post" style="display: flex; gap: 12px; align-items: center;">
+            {% csrf_token %}
+            <button type="submit" class="btn-theme-danger" style="cursor: pointer;">
+                Yes, Delete Room
+            </button>
+            <a href="{% url 'rooms:room_list' %}" class="btn-theme-secondary">
+                Cancel
+            </a>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,75 +1,125 @@
 {% extends "base.html" %}
 
-{% block title %}Monthly billing | Hostel Desk{% endblock %}
-{% block breadcrumb %}Billing{% endblock %}
+{% block title %}Monthly Billing | Hostel Desk{% endblock %}
 
 {% block content %}
 <section class="billing-page">
-    <div class="page-heading billing-page-heading">
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
         <div>
-            <p class="eyebrow">FINANCE</p>
-            <h1>Monthly billing</h1>
-            <p class="page-subtitle">Charges, balances, and recorded payments.</p>
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 1.5px; margin: 0 0 6px 0;">FINANCIAL OPERATIONS</p>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Monthly Billing & Charges</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Rent charges, recorded collections, and pending dues.</p>
         </div>
-        <a class="primary-action" href="{% url 'billing:charge_create' %}"><span aria-hidden="true">+</span> Create charge</a>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="{% url 'billing:paid_residents' %}" class="btn-theme-secondary" style="font-size: 12px; padding: 7px 14px;">Paid Residents</a>
+            <a href="{% url 'billing:attention_residents' %}" class="btn-theme-secondary" style="font-size: 12px; padding: 7px 14px;">Due Residents</a>
+            <a href="{% url 'billing:charge_create' %}" class="btn-theme-primary">
+                <span>+</span>
+                <span>Create Charge</span>
+            </a>
+        </div>
     </div>
 
-    <form method="get" class="billing-filter-form" role="search">
-        <label class="billing-search-field" for="billing-search">Search
-            <input id="billing-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Resident or receipt">
-        </label>
-        <label for="billing-year">Year<input id="billing-year" class="form-control" type="number" min="1" max="9999" name="year" value="{{ year_filter }}"></label>
-        <label for="billing-month">Month
-            <select id="billing-month" class="form-control" name="month">
-                <option value="">All months</option>
-                {% for value, label in month_choices %}<option value="{{ value }}"{% if month_filter == value|stringformat:"s" %} selected{% endif %}>{{ label }}</option>{% endfor %}
-            </select>
-        </label>
-        <label for="billing-status">Status
-            <select id="billing-status" class="form-control" name="status">
-                <option value="">All statuses</option>
-                {% for value, label in status_choices %}<option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
-            </select>
-        </label>
-        <button class="admin-link" type="submit">Filter</button>
-        {% if query or year_filter or month_filter or status_filter %}<a class="filter-reset" href="{% url 'billing:charge_list' %}">Clear</a>{% endif %}
-    </form>
+    <!-- Filters -->
+    <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+        <form method="get" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+            <div style="flex: 1; min-width: 200px;">
+                <label for="billing-search" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Search</label>
+                <input id="billing-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="Resident name, phone, or title">
+            </div>
+            <div style="width: 120px;">
+                <label for="billing-year" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Year</label>
+                <input id="billing-year" class="form-control" type="number" name="year" value="{{ year_filter }}" placeholder="YYYY">
+            </div>
+            <div style="width: 150px;">
+                <label for="billing-month" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Month</label>
+                <select id="billing-month" class="form-control" name="month">
+                    <option value="">All months</option>
+                    {% for value, label in month_choices %}
+                    <option value="{{ value }}"{% if month_filter == value|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="width: 150px;">
+                <label for="billing-status" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Status</label>
+                <select id="billing-status" class="form-control" name="status">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" class="btn-theme-primary" style="padding: 10px 16px; font-size: 13px;">Filter</button>
+                {% if query or year_filter or month_filter or status_filter %}
+                <a href="{% url 'billing:charge_list' %}" class="btn-theme-secondary" style="padding: 10px 14px; font-size: 13px;">Reset</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
 
-    {% if page_obj.object_list %}
-    <div class="room-table-wrap">
-        <table class="room-table billing-table">
-            <thead><tr><th scope="col">Resident</th><th scope="col">Period</th><th scope="col">Charge</th><th scope="col">Paid</th><th scope="col">Pending</th><th scope="col">Due date</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Details</span></th></tr></thead>
+    <!-- Charges Table -->
+    <div class="dark-table-card">
+        <table class="dark-table">
+            <thead>
+                <tr>
+                    <th>Resident</th>
+                    <th>Title / Period</th>
+                    <th>Charge (₹)</th>
+                    <th>Paid (₹)</th>
+                    <th>Pending (₹)</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for charge in page_obj %}
                 <tr>
-                    <th scope="row"><span class="room-number">{{ charge.resident.full_name }}</span><span class="room-secondary">{{ charge.resident.phone }}</span></th>
-                    <td>{{ charge.period }}</td>
-                    <td>{{ charge.amount|floatformat:2 }}</td>
-                    <td>{{ charge.paid_amount|floatformat:2 }}</td>
-                    <td>{{ charge.pending_amount|floatformat:2 }}</td>
+                    <td>
+                        <strong style="color: #ffffff; font-size: 14px;">{{ charge.resident.full_name }}</strong>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">{{ charge.resident.phone }}</div>
+                    </td>
+                    <td>
+                        <div style="color: #cbd5e1; font-weight: 500;">{{ charge.title }}</div>
+                        <div style="font-size: 11px; color: #64748b;">{{ charge.period }}</div>
+                    </td>
+                    <td style="font-weight: 600; color: #ffffff;">₹{{ charge.amount|floatformat:2 }}</td>
+                    <td style="color: #10b981; font-weight: 600;">₹{{ charge.paid_amount|floatformat:2 }}</td>
+                    <td style="color: {% if charge.pending_amount > 0 %}#f59e0b{% else %}#64748b{% endif %}; font-weight: 600;">₹{{ charge.pending_amount|floatformat:2 }}</td>
                     <td>{{ charge.due_date|date:"M j, Y" }}</td>
-                    <td><span class="billing-status billing-status-{{ charge.status }}">{{ charge.status_label }}</span></td>
-                    <td><a class="table-action" href="{% url 'billing:charge_detail' charge.pk %}">Details</a></td>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; {% if charge.status == 'PAID' %}background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);{% elif charge.status == 'PARTIAL' %}background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);{% elif charge.status == 'OVERDUE' %}background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);{% else %}background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);{% endif %}">
+                            {{ charge.status_label }}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'billing:charge_detail' charge.pk %}" style="padding: 5px 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 5px; color: #38bdf8; text-decoration: none; font-size: 12px; font-weight: 600;">Details</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 48px 20px; color: #64748b;">
+                        <div style="font-size: 15px; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">No charges found</div>
+                        <p style="margin: 0 0 16px 0; font-size: 13px;">Create monthly charges to track rental payments.</p>
+                        <a href="{% url 'billing:charge_create' %}" class="btn-theme-primary">+ Create Charge</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    {% else %}
-    <div class="room-empty-state">
-        <span class="module-icon" aria-hidden="true">B</span>
-        <h2>{% if query or year_filter or month_filter or status_filter %}No matching charges{% else %}No monthly charges yet{% endif %}</h2>
-        <p>{% if query or year_filter or month_filter or status_filter %}Adjust your filters or search terms.{% else %}Create a charge from an active resident's agreed monthly fee.{% endif %}</p>
-        {% if not query and not year_filter and not month_filter and not status_filter %}<a class="primary-action" href="{% url 'billing:charge_create' %}"><span aria-hidden="true">+</span> Create charge</a>{% endif %}
-    </div>
-    {% endif %}
 
     {% if page_obj.paginator.num_pages > 1 %}
-    <nav class="pagination" aria-label="Billing pages">
-        {% if page_obj.has_previous %}<a class="admin-link" href="?q={{ query|urlencode }}&year={{ year_filter|urlencode }}&month={{ month_filter|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 24px; font-size: 13px; color: #94a3b8;">
+        {% if page_obj.has_previous %}
+        <a href="?q={{ query|urlencode }}&year={{ year_filter|urlencode }}&month={{ month_filter|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}" class="btn-theme-secondary" style="padding: 6px 14px; font-size: 12px;">Previous</a>
+        {% endif %}
         <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        {% if page_obj.has_next %}<a class="admin-link" href="?q={{ query|urlencode }}&year={{ year_filter|urlencode }}&month={{ month_filter|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
-    </nav>
+        {% if page_obj.has_next %}
+        <a href="?q={{ query|urlencode }}&year={{ year_filter|urlencode }}&month={{ month_filter|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}" class="btn-theme-secondary" style="padding: 6px 14px; font-size: 12px;">Next</a>
+        {% endif %}
+    </div>
     {% endif %}
 </section>
 {% endblock %}
