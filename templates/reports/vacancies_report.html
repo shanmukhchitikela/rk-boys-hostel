@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Vacancies & Bed Availability | RK BOYS HOSTEL{% endblock %}
+
+{% block content %}
+<section class="report-detail-page">
+    <!-- Header -->
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <a href="{% url 'reports:index' %}" style="color: #00b4d8; text-decoration: none; font-size: 12px; font-weight: 700;">← Dashboard</a>
+                <span style="color: #64748b; font-size: 12px;">/</span>
+                <span style="font-size: 11px; font-weight: 700; color: #10b981; letter-spacing: 1.5px;">OCCUPANCY REPORT</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Hostel Vacancies & Available Beds</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Rooms arranged in natural numerical order showing current available capacity for immediate check-in.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="{% url 'reports:rooms_csv' %}" class="btn-theme-secondary" style="font-size: 13px;">
+                <span>↓ Export Rooms CSV</span>
+            </a>
+            <a href="{% url 'residents:resident_create' %}" class="btn-theme-primary" style="font-size: 13px;">
+                <span>+ Assign New Resident</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px;">
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #10b981; margin: 0 0 6px 0;">TOTAL AVAILABLE BEDS</p>
+            <div style="font-size: 32px; font-weight: 800; color: #10b981; font-family: 'Manrope', sans-serif;">{{ total_vacant }} Beds</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Across {{ vacant_rooms_count }} vacant room{{ vacant_rooms_count|pluralize }}</p>
+        </div>
+
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #f59e0b; margin: 0 0 6px 0;">OCCUPIED BEDS</p>
+            <div style="font-size: 32px; font-weight: 800; color: #f59e0b; font-family: 'Manrope', sans-serif;">{{ total_occupied }} Beds</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Currently assigned</p>
+        </div>
+
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; margin: 0 0 6px 0;">TOTAL CAPACITY</p>
+            <div style="font-size: 32px; font-weight: 800; color: #ffffff; font-family: 'Manrope', sans-serif;">{{ total_capacity }} Beds</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">In {{ total_rooms_count }} hostel rooms</p>
+        </div>
+    </div>
+
+    <!-- Vacancies List Table -->
+    <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 14px 0; font-family: 'Manrope', sans-serif; color: #f8fafc;">
+            Rooms With Available Vacancies (Natural Room Order)
+        </h2>
+    </div>
+
+    <div class="dark-table-card">
+        <table class="dark-table">
+            <thead>
+                <tr>
+                    <th>Room Number</th>
+                    <th>Floor</th>
+                    <th>Total Capacity</th>
+                    <th>Occupied Beds</th>
+                    <th>Available Beds</th>
+                    <th>Monthly Rent / Bed</th>
+                    <th>Current Occupants</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in rooms_with_vacancy %}
+                <tr>
+                    <td>
+                        <strong style="color: #ffffff; font-size: 15px;">Room {{ item.room.room_number }}</strong>
+                    </td>
+                    <td>
+                        <span style="color: #cbd5e1;">Floor {{ item.room.floor }}</span>
+                    </td>
+                    <td>
+                        <span style="color: #cbd5e1; font-weight: 600;">{{ item.capacity }} Beds</span>
+                    </td>
+                    <td>
+                        <span style="color: #f59e0b; font-weight: 600;">{{ item.occupied }} Occupied</span>
+                    </td>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);">
+                            ✓ {{ item.available }} Bed{{ item.available|pluralize }} Vacant
+                        </span>
+                    </td>
+                    <td style="color: #38bdf8; font-weight: 600;">
+                        ₹{{ item.room.monthly_fee|floatformat:2 }}
+                    </td>
+                    <td>
+                        {% if item.residents %}
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                {% for r in item.residents %}
+                                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                                    <span style="color: #e2e8f0; font-weight: 500;">{{ r.full_name }}</span>
+                                    <a href="tel:{{ r.phone }}" style="color: #38bdf8; text-decoration: none; font-size: 11px;">📞 {{ r.phone }}</a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span style="color: #64748b; font-style: italic; font-size: 12px;">Completely vacant</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'residents:resident_create' %}?room={{ item.room.id }}" class="btn-theme-primary" style="padding: 6px 12px; font-size: 11px;">
+                            + Assign Resident
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 48px 20px; color: #64748b;">
+                        <div style="font-size: 16px; font-weight: 700; color: #10b981; margin-bottom: 6px;">Hostel is 100% Full!</div>
+                        <p style="margin: 0; font-size: 13px;">There are no available vacancies currently across all hostel rooms.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- All Rooms Roster Overview -->
+    <div style="margin-top: 40px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 14px 0; color: #94a3b8;">Full Room Inventory Status</h3>
+        <div class="dark-table-card">
+            <table class="dark-table">
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Floor</th>
+                        <th>Capacity</th>
+                        <th>Occupancy</th>
+                        <th>Status</th>
+                        <th>Monthly Fee</th>
+                        <th style="text-align: right;">Manage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in all_rooms_roster %}
+                    <tr>
+                        <td><strong style="color: #ffffff;">Room {{ item.room.room_number }}</strong></td>
+                        <td>Floor {{ item.room.floor }}</td>
+                        <td>{{ item.capacity }} Beds</td>
+                        <td>{{ item.occupied }} / {{ item.capacity }} Occupied</td>
+                        <td>
+                            {% if item.available > 0 %}
+                            <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                {{ item.available }} Vacant
+                            </span>
+                            {% else %}
+                            <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                FULL
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="color: #cbd5e1;">₹{{ item.room.monthly_fee|floatformat:2 }}</td>
+                        <td style="text-align: right;">
+                            <a href="{% url 'rooms:room_edit' item.room.id %}" style="padding: 4px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 4px; color: #cbd5e1; text-decoration: none; font-size: 11px;">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
+from reports import views as report_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -9,4 +9,6 @@ urlpatterns = [
     path('residents/', include(('residents.urls', 'residents'), namespace='residents')),
     path('billing/', include(('billing.urls', 'billing'), namespace='billing')),
     path('reports/', include(('reports.urls', 'reports'), namespace='reports_page')),
+    path('settings/', report_views.account_settings, name='settings'),
+    path('logout/', report_views.logout_view, name='logout'),
 ]

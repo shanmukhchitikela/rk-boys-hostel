@@ -1,6 +1,7 @@
 from django import forms
 from .models import Resident
 from rooms.models import Room
+from rooms.utils import natural_room_key
 
 class ResidentForm(forms.ModelForm):
     class Meta:
@@ -25,6 +26,13 @@ class ResidentForm(forms.ModelForm):
             'room': forms.Select(attrs={'class': 'form-control'}),
             'joining_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        sorted_rooms = sorted(Room.objects.all(), key=natural_room_key)
+        self.fields['room'].choices = [('', '---------')] + [
+            (r.id, f"Room {r.room_number} (Floor {r.floor})") for r in sorted_rooms
+        ]
 
     def clean(self):
         cleaned_data = super().clean()

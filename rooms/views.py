@@ -2,10 +2,23 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Room
 from .forms import RoomForm
+from .utils import natural_room_key
 
 def room_list(request):
-    rooms = Room.objects.all().prefetch_related('residents')
-    return render(request, 'rooms/room_list.html', {'rooms': rooms})
+    rooms = list(Room.objects.all().prefetch_related('residents'))
+    rooms.sort(key=natural_room_key)
+
+    total_capacity = sum(r.capacity for r in rooms)
+    total_occupied = sum(r.active_occupants for r in rooms)
+    total_vacancies = sum(r.available_beds for r in rooms)
+
+    context = {
+        'rooms': rooms,
+        'total_capacity': total_capacity,
+        'total_occupied': total_occupied,
+        'total_vacancies': total_vacancies,
+    }
+    return render(request, 'rooms/room_list.html', context)
 
 def room_create(request):
     if request.method == 'POST':

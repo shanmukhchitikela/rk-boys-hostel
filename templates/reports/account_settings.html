@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}User Settings | RK BOYS HOSTEL{% endblock %}
+
+{% block content %}
+<section class="settings-page" style="max-width: 800px;">
+    <!-- Page Header -->
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <p style="font-size: 11px; font-weight: 700; color: #f43f5e; letter-spacing: 1.5px; margin: 0 0 6px 0;">HOSTEL OWNER & MANAGER ACCOUNT</p>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Account Settings</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Manage owner login credentials, manager profile information, and secure password.</p>
+        </div>
+        <form method="post" action="{% url 'reports:logout' %}" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-theme-danger" style="cursor: pointer;">
+                <span>🚪</span>
+                <span>Log Out of Hostel Desk</span>
+            </button>
+        </form>
+    </div>
+
+    <div style="display: grid; gap: 24px;">
+
+        <!-- Section 1: Profile Details -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 28px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 14px;">
+                <div style="background: rgba(0, 180, 216, 0.15); color: #00b4d8; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;">👤</div>
+                <div>
+                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #f8fafc;">Owner Profile Information</h2>
+                    <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Update display name, owner email address, and username.</p>
+                </div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+
+                <div style="display: grid; gap: 18px;">
+                    <div>
+                        <label for="username_input" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                            Username *
+                        </label>
+                        <input id="username_input" type="text" name="username" class="form-control" value="{{ request.user.username }}" required>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Used to log into the Hostel Desk management panel.</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label for="first_name_input" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                                First Name
+                            </label>
+                            <input id="first_name_input" type="text" name="first_name" class="form-control" value="{{ request.user.first_name }}">
+                        </div>
+
+                        <div>
+                            <label for="last_name_input" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                                Last Name
+                            </label>
+                            <input id="last_name_input" type="text" name="last_name" class="form-control" value="{{ request.user.last_name }}">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="email_input" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                            Email Address
+                        </label>
+                        <input id="email_input" type="email" name="email" class="form-control" value="{{ request.user.email }}" placeholder="manager@rkboyshostel.com">
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Hostel manager notification and communications email.</div>
+                    </div>
+
+                    <div style="border-top: 1px solid #1e293b; padding-top: 18px; display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn-theme-primary">
+                            <span>Save Profile Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section 2: Change Password -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 28px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 14px;">
+                <div style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🔒</div>
+                <div>
+                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #f8fafc;">Change Account Password</h2>
+                    <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Update your account password. Your active session will remain securely logged in.</p>
+                </div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+
+                <div style="display: grid; gap: 18px;">
+                    <div>
+                        <label for="{{ pw_form.old_password.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                            Current Password *
+                        </label>
+                        <input type="password" name="{{ pw_form.old_password.html_name }}" id="{{ pw_form.old_password.id_for_label }}" class="form-control" required autocomplete="current-password">
+                        {% if pw_form.old_password.errors %}
+                            <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ pw_form.old_password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label for="{{ pw_form.new_password1.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                                New Password *
+                            </label>
+                            <input type="password" name="{{ pw_form.new_password1.html_name }}" id="{{ pw_form.new_password1.id_for_label }}" class="form-control" required autocomplete="new-password">
+                            {% if pw_form.new_password1.errors %}
+                                <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ pw_form.new_password1.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ pw_form.new_password2.id_for_label }}" style="display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px;">
+                                Confirm New Password *
+                            </label>
+                            <input type="password" name="{{ pw_form.new_password2.html_name }}" id="{{ pw_form.new_password2.id_for_label }}" class="form-control" required autocomplete="new-password">
+                            {% if pw_form.new_password2.errors %}
+                                <div style="color: #ef4444; font-size: 11px; margin-top: 4px;">{{ pw_form.new_password2.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div style="background: #0d1726; border: 1px solid #1e293b; border-radius: 6px; padding: 12px 16px; font-size: 12px; color: #94a3b8;">
+                        <strong style="color: #cbd5e1;">Password Requirements:</strong> Must be at least 8 characters long and cannot be entirely numeric or commonly used.
+                    </div>
+
+                    <div style="border-top: 1px solid #1e293b; padding-top: 18px; display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn-theme-primary">
+                            <span>Update Password</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section 3: Logout Action Box -->
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <strong style="color: #ffffff; font-size: 14px; display: block;">Session Management</strong>
+                <span style="font-size: 12px; color: #64748b;">End your active Hostel Desk manager session and return to login screen.</span>
+            </div>
+            <form method="post" action="{% url 'reports:logout' %}" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-theme-danger" style="cursor: pointer; padding: 8px 16px;">
+                    <span>🚪 Log Out</span>
+                </button>
+            </form>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

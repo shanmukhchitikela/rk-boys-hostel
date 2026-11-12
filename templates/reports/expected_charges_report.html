@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Expected Charges Report | RK BOYS HOSTEL{% endblock %}
+
+{% block content %}
+<section class="report-detail-page">
+    <!-- Header -->
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <a href="{% url 'reports:index' %}" style="color: #00b4d8; text-decoration: none; font-size: 12px; font-weight: 700;">← Dashboard</a>
+                <span style="color: #64748b; font-size: 12px;">/</span>
+                <span style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 1.5px;">REVENUE PROJECTIONS</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Expected Charges Report</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Room-wise list of hostel residents and their expected charges, scheduled rent, and collection progress.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="{% url 'billing:charge_create' %}" class="btn-theme-primary" style="font-size: 13px;">
+                <span>+ Create Charge</span>
+            </a>
+            <a href="{% url 'billing:charge_list' %}" class="btn-theme-secondary" style="font-size: 13px;">
+                <span>View All Invoices</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; margin: 0 0 6px 0;">TOTAL EXPECTED CHARGES</p>
+            <div style="font-size: 32px; font-weight: 800; color: #ffffff; font-family: 'Manrope', sans-serif;">₹{{ total_expected|floatformat:2 }}</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Across {{ charges_count }} resident charges</p>
+        </div>
+
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #10b981; margin: 0 0 6px 0;">COLLECTED SO FAR</p>
+            <div style="font-size: 32px; font-weight: 800; color: #10b981; font-family: 'Manrope', sans-serif;">₹{{ total_paid|floatformat:2 }}</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Recorded and verified</p>
+        </div>
+
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #f59e0b; margin: 0 0 6px 0;">OUTSTANDING BALANCE</p>
+            <div style="font-size: 32px; font-weight: 800; color: #f59e0b; font-family: 'Manrope', sans-serif;">₹{{ total_remaining|floatformat:2 }}</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Pending collection</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+        <form method="get" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+            <div style="width: 160px;">
+                <label for="expected-month" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Month</label>
+                <select id="expected-month" class="form-control" name="month">
+                    <option value="">All Months</option>
+                    {% for value, label in month_choices %}
+                    <option value="{{ value }}"{% if month_filter == value|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="width: 120px;">
+                <label for="expected-year" style="display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Year</label>
+                <input id="expected-year" class="form-control" type="number" name="year" value="{{ year_filter }}" placeholder="YYYY">
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" class="btn-theme-primary" style="padding: 10px 16px; font-size: 13px;">Filter</button>
+                {% if month_filter or year_filter %}
+                <a href="{% url 'reports:expected_charges_report' %}" class="btn-theme-secondary" style="padding: 10px 14px; font-size: 13px;">Reset</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Charges Table (Room-Wise Order) -->
+    <div class="dark-table-card">
+        <table class="dark-table">
+            <thead>
+                <tr>
+                    <th>Room</th>
+                    <th>Resident</th>
+                    <th>Charge Title / Period</th>
+                    <th>Expected (₹)</th>
+                    <th>Paid (₹)</th>
+                    <th>Balance Due (₹)</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in charges %}
+                <tr>
+                    <td>
+                        {% if c.resident.room %}
+                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                            Room {{ c.resident.room.room_number }}
+                        </span>
+                        {% else %}
+                        <span style="color: #64748b; font-size: 11px;">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: #ffffff; font-size: 14px;">{{ c.resident.full_name }}</strong>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                            <span style="font-size: 11px; color: #94a3b8;">{{ c.resident.phone }}</span>
+                            <a href="tel:{{ c.resident.phone }}" style="color: #38bdf8; text-decoration: none; font-size: 11px; font-weight: 600;">📞 Call</a>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="color: #cbd5e1; font-weight: 500;">{{ c.title }}</div>
+                        <div style="font-size: 11px; color: #64748b;">{{ c.period }}</div>
+                    </td>
+                    <td style="color: #ffffff; font-weight: 700;">₹{{ c.amount|floatformat:2 }}</td>
+                    <td style="color: #10b981; font-weight: 600;">₹{{ c.paid_amount|floatformat:2 }}</td>
+                    <td style="color: {% if c.pending_amount > 0 %}#f59e0b{% else %}#64748b{% endif %}; font-weight: 700;">
+                        ₹{{ c.pending_amount|floatformat:2 }}
+                    </td>
+                    <td>
+                        <span style="font-size: 12px; {% if c.due_date < today and c.pending_amount > 0 %}color: #ef4444; font-weight: 600;{% else %}color: #cbd5e1;{% endif %}">
+                            {{ c.due_date|date:"M j, Y" }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; {% if c.status == 'PAID' or c.pending_amount <= 0 %}background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);{% elif c.due_date < today or c.status == 'OVERDUE' %}background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);{% elif c.status == 'PARTIAL' %}background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);{% else %}background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);{% endif %}">
+                            {% if c.status == 'PAID' or c.pending_amount <= 0 %}Paid{% elif c.due_date < today or c.status == 'OVERDUE' %}Overdue{% elif c.status == 'PARTIAL' %}Partial{% else %}Pending{% endif %}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
+                            {% if c.pending_amount > 0 %}
+                            <a href="{% url 'billing:payment_create' c.pk %}" class="btn-theme-primary" style="padding: 4px 10px; font-size: 11px;">
+                                + Record Pay
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'billing:charge_detail' c.pk %}" style="padding: 4px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 4px; color: #cbd5e1; text-decoration: none; font-size: 11px;">
+                                Details ↗
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 48px 20px; color: #64748b;">
+                        <div style="font-size: 15px; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">No expected charges found</div>
+                        <p style="margin: 0; font-size: 13px;">Create new monthly charges for hostel residents.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -27,94 +27,111 @@
     <!-- Workspace Summary Title -->
     <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: 0.3px;">Workspace summary</h3>
 
-    <!-- 6 Primary Grid Metric Cards -->
+    <!-- 6 Primary Grid Metric Cards (all clickable) -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 35px;">
-        
+
         <!-- Active Residents Card -->
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px; position: relative;">
-            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">ACTIVE RESIDENTS</p>
-            <div style="font-size: 36px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; line-height: 1; margin-bottom: 12px;">{{ active_residents }}</div>
-            <a href="{% url 'residents:resident_list' %}" style="color: #64748b; text-decoration: none; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
-                <span>View residents</span>
-                <span>↗</span>
-            </a>
-        </div>
+        <a href="{% url 'residents:resident_list' %}" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px; position: relative; transition: border-color 150ms ease; cursor: pointer;" onmouseover="this.style.borderColor='#00b4d8'" onmouseout="this.style.borderColor='#1e293b'">
+                <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">ACTIVE RESIDENTS</p>
+                <div style="font-size: 36px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; line-height: 1; margin-bottom: 12px;">{{ active_residents }}</div>
+                <div style="color: #64748b; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
+                    <span>View residents</span><span>↗</span>
+                </div>
+            </div>
+        </a>
 
         <!-- Total Capacity Card -->
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px;">
-            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">TOTAL CAPACITY</p>
-            <div style="font-size: 36px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; line-height: 1; margin-bottom: 12px;">{{ total_capacity }}</div>
-            <a href="{% url 'rooms:room_list' %}" style="color: #64748b; text-decoration: none; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
-                <span>View rooms</span>
-                <span>↗</span>
-            </a>
-        </div>
+        <a href="{% url 'rooms:room_list' %}" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#00b4d8'" onmouseout="this.style.borderColor='#1e293b'">
+                <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">TOTAL CAPACITY</p>
+                <div style="font-size: 36px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; line-height: 1; margin-bottom: 12px;">{{ total_capacity }}</div>
+                <div style="color: #64748b; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
+                    <span>View rooms</span><span>↗</span>
+                </div>
+            </div>
+        </a>
 
-        <!-- Vacancies Card -->
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px;">
-            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">VACANCIES</p>
-            <div style="font-size: 36px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #10b981; line-height: 1; margin-bottom: 12px;">{{ vacancies }}</div>
-            <a href="{% url 'rooms:room_list' %}" style="color: #64748b; text-decoration: none; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
-                <span>Bed availability</span>
-                <span>↗</span>
-            </a>
-        </div>
+        <!-- Vacancies Card → drill-down -->
+        <a href="{% url 'reports:vacancies_report' %}" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='#1e293b'">
+                <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">VACANCIES</p>
+                <div style="font-size: 36px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #10b981; line-height: 1; margin-bottom: 12px;">{{ vacancies }}</div>
+                <div style="color: #64748b; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
+                    <span>Bed availability →</span><span>↗</span>
+                </div>
+            </div>
+        </a>
 
-        <!-- Expected Charges Card -->
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px;">
-            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">EXPECTED CHARGES</p>
-            <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; line-height: 1; margin-bottom: 12px;">₹{{ expected_charges|floatformat:2 }}</div>
-            <a href="{% url 'billing:charge_list' %}" style="color: #64748b; text-decoration: none; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
-                <span>Billing detail</span>
-                <span>↗</span>
-            </a>
-        </div>
+        <!-- Expected Charges Card → drill-down -->
+        <a href="{% url 'reports:expected_charges_report' %}" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#00b4d8'" onmouseout="this.style.borderColor='#1e293b'">
+                <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">EXPECTED CHARGES</p>
+                <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; line-height: 1; margin-bottom: 12px;">₹{{ expected_charges|floatformat:2 }}</div>
+                <div style="color: #64748b; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
+                    <span>All charges detail →</span><span>↗</span>
+                </div>
+            </div>
+        </a>
 
-        <!-- Amount Collected Card -->
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px;">
-            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">AMOUNT COLLECTED</p>
-            <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #10b981; line-height: 1; margin-bottom: 12px;">₹{{ amount_collected|floatformat:2 }}</div>
-            <a href="{% url 'billing:paid_residents' %}" style="color: #64748b; text-decoration: none; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
-                <span>Paid residents</span>
-                <span>↗</span>
-            </a>
-        </div>
+        <!-- Amount Collected Card → drill-down -->
+        <a href="{% url 'reports:collected_report' %}" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='#1e293b'">
+                <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">AMOUNT COLLECTED</p>
+                <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #10b981; line-height: 1; margin-bottom: 12px;">₹{{ amount_collected|floatformat:2 }}</div>
+                <div style="color: #64748b; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
+                    <span>Paid residents →</span><span>↗</span>
+                </div>
+            </div>
+        </a>
 
-        <!-- Remaining Balance Card -->
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px;">
-            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">REMAINING BALANCE</p>
-            <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #f59e0b; line-height: 1; margin-bottom: 12px;">₹{{ remaining_balance|floatformat:2 }}</div>
-            <a href="{% url 'billing:attention_residents' %}" style="color: #64748b; text-decoration: none; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
-                <span>Due residents</span>
-                <span>↗</span>
-            </a>
-        </div>
+        <!-- Remaining Balance Card → drill-down -->
+        <a href="{% url 'reports:balance_report' %}" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 22px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='#1e293b'">
+                <p style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.8px; margin: 0 0 10px 0;">REMAINING BALANCE</p>
+                <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #f59e0b; line-height: 1; margin-bottom: 12px;">₹{{ remaining_balance|floatformat:2 }}</div>
+                <div style="color: #64748b; font-size: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 500;">
+                    <span>Due residents →</span><span>↗</span>
+                </div>
+            </div>
+        </a>
 
     </div>
 
-    <!-- Charge Status Section -->
+    <!-- Charge Status Section (all clickable → filtered billing) -->
     <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: 0.3px;">Charge status</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
-            <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Paid</span>
-            <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; margin-top: 14px; line-height: 1;">{{ paid_count }}</div>
-            <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">residents</p>
-        </div>
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
-            <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Pending</span>
-            <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; margin-top: 14px; line-height: 1;">{{ pending_count }}</div>
-            <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">residents</p>
-        </div>
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
-            <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Due soon</span>
-            <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; margin-top: 14px; line-height: 1;">{{ due_soon_count }}</div>
-            <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">residents</p>
-        </div>
-        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px;">
-            <span style="background: #ef4444; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Overdue</span>
-            <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ef4444; margin-top: 14px; line-height: 1;">{{ overdue_count }}</div>
-            <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">residents</p>
-        </div>
+
+        <a href="{% url 'billing:charge_list' %}?tab=paid" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#0284c7'" onmouseout="this.style.borderColor='#1e293b'">
+                <span style="background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Paid</span>
+                <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; margin-top: 14px; line-height: 1;">{{ paid_count }}</div>
+                <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">charges →</p>
+            </div>
+        </a>
+
+        <a href="{% url 'billing:charge_list' %}?tab=pending" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='#1e293b'">
+                <span style="background: #f59e0b; color: #0b1329; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Pending</span>
+                <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; margin-top: 14px; line-height: 1;">{{ pending_count }}</div>
+                <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">charges →</p>
+            </div>
+        </a>
+
+        <a href="{% url 'billing:charge_list' %}?due=soon" style="text-decoration: none;">
+                <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ffffff; margin-top: 14px; line-height: 1;">{{ due_soon_count }}</div>
+                <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">charges →</p>
+            </div>
+        </a>
+
+        <a href="{% url 'billing:charge_list' %}?tab=overdue" style="text-decoration: none;">
+            <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 20px; transition: border-color 150ms ease;" onmouseover="this.style.borderColor='#ef4444'" onmouseout="this.style.borderColor='#1e293b'">
+                <span style="background: #ef4444; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">Overdue</span>
+                <div style="font-size: 32px; font-weight: 800; font-family: 'Manrope', sans-serif; color: #ef4444; margin-top: 14px; line-height: 1;">{{ overdue_count }}</div>
+                <p style="color: #64748b; font-size: 12px; margin: 8px 0 0 0;">charges →</p>
+            </div>
+        </a>
+
     </div>
 </div>
 {% endblock %}

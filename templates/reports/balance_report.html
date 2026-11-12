@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Remaining Balance & Due Follow-Up | RK BOYS HOSTEL{% endblock %}
+
+{% block content %}
+<section class="report-detail-page">
+    <!-- Header -->
+    <div class="page-heading" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <a href="{% url 'reports:index' %}" style="color: #00b4d8; text-decoration: none; font-size: 12px; font-weight: 700;">← Dashboard</a>
+                <span style="color: #64748b; font-size: 12px;">/</span>
+                <span style="font-size: 11px; font-weight: 700; color: #f59e0b; letter-spacing: 1.5px;">ARREARS & BALANCES</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0 0 6px 0; font-family: 'Manrope', sans-serif;">Remaining Balance & Due Report</h1>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">Room-wise list of residents with unpaid balances, overdue dates, and direct one-click dialer follow-up.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="{% url 'billing:charge_list' %}?tab=overdue" class="btn-theme-danger" style="font-size: 13px;">
+                <span>View Overdue Tab ({{ overdue_count }})</span>
+            </a>
+            <a href="{% url 'billing:charge_create' %}" class="btn-theme-primary" style="font-size: 13px;">
+                <span>+ Create Charge</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px;">
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #f59e0b; margin: 0 0 6px 0;">TOTAL REMAINING BALANCE</p>
+            <div style="font-size: 32px; font-weight: 800; color: #f59e0b; font-family: 'Manrope', sans-serif;">₹{{ total_balance|floatformat:2 }}</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Total pending collection</p>
+        </div>
+
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #ef4444; margin: 0 0 6px 0;">OVERDUE CHARGES</p>
+            <div style="font-size: 32px; font-weight: 800; color: #ef4444; font-family: 'Manrope', sans-serif;">{{ overdue_count }}</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Past payment deadline</p>
+        </div>
+
+        <div style="background: #111c38; border: 1px solid #1e293b; border-radius: 10px; padding: 18px 22px;">
+            <p style="font-size: 11px; font-weight: 700; color: #38bdf8; margin: 0 0 6px 0;">PENDING / UPCOMING</p>
+            <div style="font-size: 32px; font-weight: 800; color: #ffffff; font-family: 'Manrope', sans-serif;">{{ pending_count }}</div>
+            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">Due in future / on track</p>
+        </div>
+    </div>
+
+    <!-- Remaining Balance Table (Room-Wise Order) -->
+    <div class="dark-table-card">
+        <table class="dark-table">
+            <thead>
+                <tr>
+                    <th>Room</th>
+                    <th>Resident Name</th>
+                    <th>Direct Call / Contact</th>
+                    <th>Charge Title</th>
+                    <th>Total Invoiced</th>
+                    <th>Paid So Far</th>
+                    <th>Remaining Due</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in charges %}
+                <tr>
+                    <td>
+                        {% if c.resident.room %}
+                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">
+                            Room {{ c.resident.room.room_number }}
+                        </span>
+                        {% else %}
+                        <span style="color: #64748b; font-size: 11px;">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: #ffffff; font-size: 14px;">{{ c.resident.full_name }}</strong>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #cbd5e1; font-weight: 500;">{{ c.resident.phone }}</span>
+                            <!-- Direct Click-to-Call Button -->
+                            <a href="tel:{{ c.resident.phone }}" 
+                               title="Click to Call {{ c.resident.full_name }}" 
+                               style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 4px; color: #34d399; font-size: 11px; font-weight: 700; text-decoration: none;">
+                                <span>📞</span>
+                                <span>Call</span>
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="color: #cbd5e1; font-weight: 500;">{{ c.title }}</div>
+                        <div style="font-size: 11px; color: #64748b;">{{ c.period }}</div>
+                    </td>
+                    <td style="color: #cbd5e1; font-weight: 600;">₹{{ c.amount|floatformat:2 }}</td>
+                    <td style="color: #10b981; font-weight: 600;">₹{{ c.paid_amount|floatformat:2 }}</td>
+                    <td style="color: #f59e0b; font-weight: 800; font-size: 15px;">
+                        ₹{{ c.pending_amount|floatformat:2 }}
+                    </td>
+                    <td>
+                        <span style="font-size: 12px; {% if c.due_date < today or c.status == 'OVERDUE' %}color: #ef4444; font-weight: 700;{% else %}color: #cbd5e1;{% endif %}">
+                            {{ c.due_date|date:"M j, Y" }}
+                        </span>
+                        {% if c.due_date < today or c.status == 'OVERDUE' %}
+                        <div style="font-size: 10px; color: #ef4444; font-weight: 600;">OVERDUE</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; {% if c.due_date < today or c.status == 'OVERDUE' %}background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);{% else %}background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);{% endif %}">
+                            {% if c.due_date < today or c.status == 'OVERDUE' %}Overdue{% else %}Pending{% endif %}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
+                            <a href="{% url 'billing:payment_create' c.pk %}" class="btn-theme-primary" style="padding: 4px 10px; font-size: 11px;">
+                                + Record Pay
+                            </a>
+                            <a href="{% url 'billing:charge_detail' c.pk %}" style="padding: 4px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 4px; color: #cbd5e1; text-decoration: none; font-size: 11px;">
+                                Details ↗
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 48px 20px; color: #64748b;">
+                        <div style="font-size: 16px; font-weight: 700; color: #10b981; margin-bottom: 6px;">Zero Remaining Balances!</div>
+                        <p style="margin: 0; font-size: 13px;">All charges have been completely settled and paid in full.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from .utils import natural_room_key
 
 class Room(models.Model):
     room_number = models.CharField(max_length=20, unique=True, help_text="Unique room number")
@@ -23,6 +24,10 @@ class Room(models.Model):
     @property
     def fee(self):
         return self.monthly_fee
+
+    @property
+    def natural_sort_key(self):
+        return natural_room_key(self)
 
     @property
     def active_occupants(self):

@@ -215,7 +215,7 @@
                 <p class="nav-caption" style="font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 1.2px; margin: 0 0 10px 10px;">WORKSPACE</p>
                 
                 <nav class="primary-nav" style="display: flex; flex-direction: column; gap: 4px;">
-                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'reports' or request.resolver_match.app_name == 'reports_page' %}active{% endif %}" href="{% url 'reports:index' %}">
+                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'reports' or request.resolver_match.app_name == 'reports_page' %}{% if request.resolver_match.url_name != 'account_settings' %}active{% endif %}{% endif %}" href="{% url 'reports:index' %}">
                         <span style="font-weight: bold; width: 18px; text-align: center; color: #00b4d8;">D</span>
                         <span>Dashboard</span>
                     </a>
@@ -227,13 +227,17 @@
                         <span style="font-weight: bold; width: 18px; text-align: center; color: #f59e0b;">P</span>
                         <span>Residents</span>
                     </a>
-                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}" href="{% url 'billing:charge_list' %}">
+                    <a class="sidebar-nav-link {% if request.resolver_match.app_name == 'billing' and request.resolver_match.url_name != 'payment_history' %}active{% endif %}" href="{% url 'billing:charge_list' %}">
                         <span style="font-weight: bold; width: 18px; text-align: center; color: #38bdf8;">B</span>
                         <span>Billing</span>
                     </a>
-                    <a class="sidebar-nav-link" href="{% url 'reports:index' %}">
-                        <span style="font-weight: bold; width: 18px; text-align: center; color: #a855f7;">T</span>
-                        <span>Reports</span>
+                    <a class="sidebar-nav-link {% if request.resolver_match.url_name == 'payment_history' %}active{% endif %}" href="{% url 'billing:payment_history' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #10b981;">₹</span>
+                        <span>Payments</span>
+                    </a>
+                    <a class="sidebar-nav-link {% if request.resolver_match.url_name == 'account_settings' %}active{% endif %}" href="{% url 'reports:account_settings' %}">
+                        <span style="font-weight: bold; width: 18px; text-align: center; color: #f43f5e;">⚙</span>
+                        <span>Settings</span>
                     </a>
                     <a class="sidebar-nav-link" href="{% url 'admin:index' %}">
                         <span style="font-weight: bold; width: 18px; text-align: center; color: #ec4899;">A</span>
@@ -247,13 +251,23 @@
                     <span style="height: 7px; width: 7px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);"></span>
                     <span>Workspace ready</span>
                 </div>
-                <div class="user-card" style="display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.02);">
-                    <span class="user-avatar" style="background: #1e293b; color: #38bdf8; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">RK</span>
-                    <div style="display: flex; flex-direction: column;">
-                        <span class="user-name" style="font-weight: 600; font-size: 13px; color: #e2e8f0;">RK</span>
-                        <span style="font-size: 10px; color: #64748b;">Hostel Manager</span>
+                <div class="user-card" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.03); margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                        <span class="user-avatar" style="background: #1e293b; color: #38bdf8; width: 32px; height: 32px; min-width: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">RK</span>
+                        <div style="display: flex; flex-direction: column; overflow: hidden;">
+                            <span class="user-name" style="font-weight: 600; font-size: 13px; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ request.user.get_full_name|default:request.user.username|default:"RK Manager" }}</span>
+                            <span style="font-size: 10px; color: #64748b;">Hostel Manager</span>
+                        </div>
                     </div>
+                    <a href="{% url 'reports:account_settings' %}" title="Account Settings" style="color: #94a3b8; font-size: 14px; text-decoration: none; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">⚙</a>
                 </div>
+                <form method="post" action="{% url 'reports:logout' %}" style="margin: 0; width: 100%;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-theme-danger" style="width: 100%; justify-content: center; padding: 7px 12px; font-size: 12px; cursor: pointer;">
+                        <span>🚪</span>
+                        <span>Log Out</span>
+                    </button>
+                </form>
             </div>
         </aside>
 

@@ -1,5 +1,7 @@
 from django import forms
 from .models import Charge, Payment
+from residents.models import Resident
+from rooms.utils import natural_resident_key
 
 class ChargeForm(forms.ModelForm):
     class Meta:
@@ -13,12 +15,22 @@ class ChargeForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        sorted_residents = sorted(Resident.objects.select_related('room').all(), key=natural_resident_key)
+        self.fields['resident'].choices = [('', '---------')] + [
+            (r.id, f"{f'Room {r.room.room_number}' if r.room else 'Unassigned'} — {r.full_name} ({r.phone})")
+            for r in sorted_residents
+        ]
+
 class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
-        fields = ['charge', 'amount_paid', 'payment_method']
+        fields = ['amount_paid', 'payment_date', 'payment_method', 'reference', 'notes']
         widgets = {
-            'charge': forms.Select(attrs={'class': 'form-control'}),
             'amount_paid': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.01'}),
-            'payment_method': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UPI, Cash, Bank Transfer'}),
+            'payment_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'payment_method': forms.Select(attrs={'class': 'form-control'}),
+            'reference': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. UPI Ref / Cheque No / Cash receipt'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional remarks'}),
         }

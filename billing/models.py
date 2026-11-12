@@ -40,10 +40,18 @@ class Charge(models.Model):
         return self.get_status_display()
 
 class Payment(models.Model):
+    PAYMENT_METHOD_CHOICES = (
+        ('Cash', 'Cash'),
+        ('UPI', 'UPI'),
+        ('Check', 'Check/Cheque'),
+    )
+
     charge = models.ForeignKey(Charge, on_delete=models.CASCADE, related_name='payments')
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_date = models.DateTimeField(auto_now_add=True)
-    payment_method = models.CharField(max_length=50, default="UPI/Cash")
+    payment_date = models.DateTimeField(default=timezone.now)
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHOD_CHOICES, default='UPI')
+    reference = models.CharField(max_length=100, blank=True, default='')
+    notes = models.TextField(blank=True, default='')
 
     def __str__(self):
         return f"Payment ₹{self.amount_paid} for {self.charge.resident.full_name}"
