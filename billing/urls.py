@@ -13,4 +13,6 @@ urlpatterns = [
     path('payments/<int:pk>/receipt/', views.payment_receipt, name='payment_receipt'),
     path('paid-residents/', views.paid_residents, name='paid_residents'),
     path('attention-residents/', views.attention_residents, name='attention_residents'),
+    path('charges/<int:pk>/send-reminder/', views.send_whatsapp_reminder, name='send_whatsapp_reminder'),
+    path('attention-residents/send-all-reminders/', views.send_all_whatsapp_reminders, name='send_all_whatsapp_reminders'),
 ]

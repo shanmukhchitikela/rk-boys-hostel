@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 import re
 from datetime import timedelta
 from decimal import Decimal
@@ -363,3 +364,46 @@ def attention_residents(request):
         'today': today,
     }
     return render(request, 'billing/attention_residents.html', context)
+
+
+@require_POST
+def send_whatsapp_reminder(request, pk):
+    from .whatsapp import send_rent_reminder
+    charge = get_object_or_404(Charge.objects.select_related('resident'), pk=pk)
+    resident = charge.resident
+    phone = getattr(resident, 'phone', None) or getattr(resident, 'phone_number', None) or getattr(resident, 'mobile', '')
+    if not phone:
+        messages.error(request, f"No phone number found for {resident.full_name}.")
+        return redirect(request.META.get('HTTP_REFERER', 'billing:attention_residents'))
+
+    amount = getattr(charge, 'balance_due', None)
+    if amount is None:
+        amount = getattr(charge, 'amount', 0)
+    amount_str = f"{int(amount)}" if float(amount).is_integer() else f"{amount:.2f}"
+    due_date = charge.due_date.strftime("%d %b %Y") if getattr(charge, 'due_date', None) else "5th of this month"
+    month_year = charge.due_date.strftime("%B %Y") if getattr(charge, 'due_date', None) else "Current Month"
+
+    result = send_rent_reminder(
+        phone=str(phone),
+        student_name=resident.full_name,
+        amount=amount_str,
+        month_year=month_year,
+        due_date=due_date,
+    )
+    if result.get("ok"):
+        messages.success(request, f"WhatsApp reminder sent to {resident.full_name} ({phone}).")
+    else:
+        err = result.get("data", {}).get("error", {}).get("message", "Failed to send WhatsApp message.")
+        messages.error(request, f"Failed for {resident.full_name}: {err}")
+    return redirect(request.META.get('HTTP_REFERER', 'billing:attention_residents'))
+
+
+@require_POST
+def send_all_whatsapp_reminders(request):
+    from django.core.management import call_command
+    import io
+    out = io.StringIO()
+    call_command('send_monthly_rent_reminders', stdout=out)
+    summary = out.getvalue().strip().splitlines()[-1] if out.getvalue().strip() else "Reminders processed."
+    messages.info(request, f"Bulk WhatsApp run complete: {summary}")
+    return redirect(request.META.get('HTTP_REFERER', 'billing:attention_residents'))
