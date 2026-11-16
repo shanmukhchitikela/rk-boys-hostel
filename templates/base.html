@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
     <meta charset="utf-8">
     
     <title>{% block title %}Hostel Desk{% endblock %}</title>
@@ -200,125 +201,26 @@
     </style>
     <script src="{% static 'js/app.js' %}" defer></script>
 <style id="warm-ui-override">
-  *, *::before, *::after {
-    box-sizing: border-box !important;
-  }
-
-  html, body {
-    background-color: #121316 !important;
-    background: #121316 !important;
-    color: #F3F4F6 !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif !important;
-  }
-
-  /* Override all navy/blue dark surfaces to Matte Charcoal */
-  .app-shell, .layout-wrapper, .page-wrapper, .main-wrapper, .content-wrapper,
-  main.content-area, main, section {
-    background-color: #121316 !important;
-    background: #121316 !important;
-    color: #F3F4F6 !important;
-  }
-
-  .card, .stat-card, .panel, .table-card, .metric-card, .box, .section-card,
-  .summary-card, .kpi-card, .overview-card, form.filter-form, .filter-card,
-  [class*="card"], [class*="panel"], [class*="stat"] {
-    background-color: #1C1E22 !important;
-    background: #1C1E22 !important;
-    color: #F3F4F6 !important;
-    border: 1px solid #2C2F36 !important;
-    border-radius: 14px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
-  }
-
-  h1, h2, h3, h4, h5, .card-title, .stat-value, strong {
-    color: #F9FAFB !important;
-  }
-
-  p, label, .subtitle, .muted, .text-muted {
-    color: #9CA3AF !important;
-  }
-
-  label {
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    margin-bottom: 6px !important;
-    display: inline-block !important;
-  }
-
-  input, select, textarea, .form-control {
-    background-color: #1C1E22 !important;
-    color: #F3F4F6 !important;
-    border: 1px solid #323640 !important;
-    border-radius: 10px !important;
-    padding: 10px 12px !important;
-    font-size: 14px !important;
-    width: 100% !important;
-  }
-
-  input:focus, select:focus, textarea:focus, .form-control:focus {
-    border-color: #F59E0B !important;
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.22) !important;
-    outline: none !important;
-  }
-
-  .btn-primary, button[type="submit"] {
-    background-color: #F59E0B !important;
-    border: 1px solid #F59E0B !important;
-    color: #111827 !important;
-    font-weight: 600 !important;
-    border-radius: 10px !important;
-    padding: 9px 18px !important;
-  }
-
-  .btn-secondary, .btn-outline, a.btn-reset, button[type="reset"] {
-    background-color: #262930 !important;
-    border: 1px solid #353942 !important;
-    color: #E5E7EB !important;
-    border-radius: 10px !important;
-    padding: 9px 16px !important;
-  }
-
-  .badge-success, .badge-paid, .badge-active, .pill-green {
-    background-color: rgba(34, 197, 94, 0.16) !important;
-    color: #4ADE80 !important;
-    border: 1px solid rgba(34, 197, 94, 0.3) !important;
-    border-radius: 8px !important;
-    padding: 3px 10px !important;
-    font-weight: 600 !important;
-  }
-
-  .badge-warning, .badge-room, .pill-amber {
-    background-color: rgba(245, 158, 11, 0.16) !important;
-    color: #FBBF24 !important;
-    border: 1px solid rgba(245, 158, 11, 0.3) !important;
-    border-radius: 8px !important;
-    padding: 3px 10px !important;
-    font-weight: 600 !important;
-  }
-
-  .badge-danger, .badge-full, .badge-due, .pill-red {
-    background-color: rgba(239, 68, 68, 0.16) !important;
-    color: #F87171 !important;
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
-    border-radius: 8px !important;
-    padding: 3px 10px !important;
-    font-weight: 600 !important;
-  }
-
-  .mobile-bottom-nav {
+  .mobile-bottom-nav, .mobile-drawer-backdrop {
     display: none;
   }
 
-  /* === ANDROID & MOBILE FULL-WIDTH FIT (<= 1024px) === */
-  @media (max-width: 1024px) {
-    /* Kill any desktop sidebar grid/flex column or left offset */
+  /* ONLY apply on Android / Mobile screens (<= 900px) - Laptop stays 100% untouched */
+  @media (max-width: 900px) {
+    *, *::before, *::after {
+      box-sizing: border-box !important;
+      max-width: 100vw;
+    }
+
+    html, body {
+      width: 100% !important;
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    /* Collapse desktop sidebar column / left offset completely */
     body > div, .app-shell, .layout-wrapper, .page-wrapper, .shell, .container-fluid {
       display: block !important;
       grid-template-columns: 1fr !important;
@@ -331,27 +233,24 @@
 
     .main-wrapper, .content-wrapper, .page-content, main.content-area, main, #main-content {
       margin-left: 0 !important;
-      padding-left: 14px !important;
-      padding-right: 14px !important;
-      padding-top: 66px !important;
-      padding-bottom: 86px !important;
       left: 0 !important;
       width: 100% !important;
       max-width: 100vw !important;
+      padding: 64px 14px 88px !important;
+      overflow-x: hidden !important;
     }
 
-    /* Hide desktop sidebar off-canvas until toggled */
+    /* Sidebar becomes slide-out drawer on Android */
     aside, .sidebar, nav.sidebar, .side-nav, #sidebar {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
-      width: 260px !important;
+      width: 265px !important;
       height: 100vh !important;
-      background-color: #18191D !important;
       z-index: 1200 !important;
       transform: translateX(-105%) !important;
       transition: transform 0.25s ease !important;
-      border-right: 1px solid #2A2D35 !important;
+      overflow-y: auto !important;
     }
 
     aside.open, .sidebar.open, aside.active, .sidebar.active, #sidebar.open,
@@ -359,21 +258,57 @@
       transform: translateX(0) !important;
     }
 
-    /* Stack grids & action rows cleanly on Android */
-    .grid, .stats-grid, .cards-grid, .kpi-grid, [style*="grid-template-columns"] {
-      display: grid !important;
-      grid-template-columns: 1fr !important;
-      gap: 12px !important;
-      width: 100% !important;
+    .mobile-drawer-backdrop {
+      display: none;
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(0, 0, 0, 0.6) !important;
+      z-index: 1180 !important;
     }
 
+    body.sidebar-open .mobile-drawer-backdrop {
+      display: block !important;
+    }
+
+    /* Stack header action buttons & titles vertically without overflow */
     h1 {
       font-size: 24px !important;
       line-height: 1.25 !important;
       word-break: break-word !important;
     }
 
-    /* Convert tables into stacked mobile cards */
+    .page-header, .header-row, .top-actions, .header-actions {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 10px !important;
+      width: 100% !important;
+    }
+
+    /* Convert all multi-column KPI / stat / filter grids to vertical stack */
+    .grid, .stats-grid, .cards-grid, .kpi-grid, .summary-grid,
+    form, .filter-grid, .filter-row, [style*="grid-template-columns"] {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+      width: 100% !important;
+    }
+
+    input, select, textarea, .form-control {
+      width: 100% !important;
+      max-width: 100% !important;
+      font-size: 15px !important;
+    }
+
+    /* Convert wide desktop tables into vertical mobile cards (zero horizontal scroll) */
+    .table-responsive, .table-wrapper, .table-container {
+      width: 100% !important;
+      overflow-x: visible !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: none !important;
+    }
+
     table, thead, tbody, th, td, tr {
       display: block !important;
       width: 100% !important;
@@ -384,33 +319,37 @@
     }
 
     tbody tr {
-      background-color: #1C1E22 !important;
-      border: 1px solid #2C2F36 !important;
+      background-color: #101B33 !important;
+      border: 1px solid #1E2E4F !important;
       border-radius: 14px !important;
       padding: 14px !important;
-      margin-bottom: 14px !important;
+      margin-bottom: 12px !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
     }
 
     tbody td {
       border: none !important;
-      padding: 5px 0 !important;
+      padding: 6px 0 !important;
       display: flex !important;
       justify-content: space-between !important;
       align-items: center !important;
       flex-wrap: wrap !important;
-      gap: 6px !important;
+      gap: 8px !important;
+      text-align: right !important;
       background: transparent !important;
     }
 
     tbody td::before {
       content: attr(data-label);
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: #6B7280;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.04em !important;
+      text-transform: uppercase !important;
+      color: #7C8FA8 !important;
+      text-align: left !important;
     }
 
-    /* Fixed 5-Tab Android Bottom Navigation Bar */
+    /* Fixed 5-Tab Bottom Navigation Bar matching HostelDesk Navy + Cyan theme */
     .mobile-bottom-nav {
       display: flex !important;
       position: fixed !important;
@@ -419,8 +358,8 @@
       right: 0 !important;
       width: 100vw !important;
       height: 64px !important;
-      background-color: #16181C !important;
-      border-top: 1px solid #2A2D35 !important;
+      background-color: #0D1629 !important;
+      border-top: 1px solid #1E2E4F !important;
       z-index: 1150 !important;
       justify-content: space-around !important;
       align-items: center !important;
@@ -430,7 +369,7 @@
     .mobile-bottom-nav a, .mobile-bottom-nav button {
       background: transparent !important;
       border: none !important;
-      color: #9CA3AF !important;
+      color: #8A9BB5 !important;
       text-decoration: none !important;
       display: flex !important;
       flex-direction: column !important;
@@ -441,10 +380,12 @@
       gap: 3px !important;
       flex: 1 !important;
       padding: 4px 0 !important;
+      cursor: pointer !important;
     }
 
     .mobile-bottom-nav a.active {
-      color: #FBBF24 !important;
+      color: #00B4D8 !important;
+      font-weight: 600 !important;
     }
 
     .mobile-bottom-nav .nav-ico {
@@ -545,12 +486,13 @@
             </main>
         </div>
     </div>
+<div class="mobile-drawer-backdrop" onclick="document.body.classList.remove('sidebar-open'); var s=document.querySelector('aside, .sidebar, #sidebar'); if(s) s.classList.remove('open');"></div>
 <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
   <a href="/"><span class="nav-ico">📊</span><span>Dashboard</span></a>
   <a href="/rooms/"><span class="nav-ico">🛏️</span><span>Rooms</span></a>
   <a href="/residents/"><span class="nav-ico">👥</span><span>Residents</span></a>
   <a href="/billing/"><span class="nav-ico">🧾</span><span>Billing</span></a>
-  <button type="button" onclick="document.body.classList.toggle('sidebar-open'); var s=document.querySelector('aside, .sidebar'); if(s) s.classList.toggle('open');"><span class="nav-ico">•••</span><span>More</span></button>
+  <button type="button" onclick="document.body.classList.toggle('sidebar-open'); var s=document.querySelector('aside, .sidebar, #sidebar'); if(s) s.classList.toggle('open');"><span class="nav-ico">•••</span><span>More</span></button>
 </nav>
 <script>
   (function() {
@@ -575,6 +517,7 @@
 </script>
 </body>
 </html>
+
 
 
 
